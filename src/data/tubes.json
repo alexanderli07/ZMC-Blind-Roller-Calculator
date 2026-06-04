@@ -1,0 +1,20 @@
+[
+    { "name": "1TU", "diameter": 31.8, "thickness": null, "moment": 0.027930224, "elasticity": 10007760, "weight": 0.192 },
+    { "name": "3TU", "diameter": 44.5, "thickness": null, "moment": 0.10795, "elasticity": 10007760, "weight": 0.374 },
+    { "name": "2TU", "diameter": 40.0, "thickness": null, "moment": 0.065876, "elasticity": 10007760, "weight": 0.291 },
+    { "name": "T46", "diameter": 38.5, "thickness": null, "moment": 0.068128, "elasticity": 10007760, "weight": 0.308 },
+    { "name": "1.25\" thicker", "diameter": 34.2, "thickness": null, "moment": 0.070151, "elasticity": 10007760, "weight": 0.439 },
+    { "name": "1.5\" GROOVE", "diameter": 42.0, "thickness": 1.0, "moment": 0.156539, "elasticity": 10007760, "weight": 0.626 },
+    { "name": "T56", "diameter": 50.0, "thickness": null, "moment": 0.196105, "elasticity": 10007760, "weight": 0.500 },
+    { "name": "2\" groove motor tube", "diameter": 51.0, "thickness": null, "moment": 0.239670, "elasticity": 10007760, "weight": 0.642 },
+    { "name": "2 3/8\" motor tube", "diameter": 60.8, "thickness": null, "moment": 0.492173, "elasticity": 10007760, "weight": 0.979 },
+    { "name": "Acmeda heavy duty tube", "diameter": 49.0, "thickness": 1.75, "moment": 0.034052, "elasticity": 10007760, "weight": 0.215 },
+    { "name": "SE bottom bar", "diameter": 21.0, "thickness": 2.0, "moment": 0.241252, "elasticity": 10007760, "weight": 0.708 },
+    { "name": "14mm round rod(Aluminum)", "diameter": 10.3, "thickness": 2.0, "moment": 0.028421, "elasticity": 10007760, "weight": 0.270 },
+    { "name": "2.5\" tube", "diameter": 65.1, "thickness": 1.8, "moment": 0.003651, "elasticity": 10007760, "weight": 0.147 },
+    { "name": "3.25\" tube -ZMC", "diameter": 87.6, "thickness": 2.6, "moment": 0.534202, "elasticity": 10007760, "weight": 0.853 },
+    { "name": "T26 1 1/8\" TUBE", "diameter": 29.3, "thickness": 1.25, "moment": 2.074289, "elasticity": 10007760, "weight": 2.210 },
+    { "name": "3.25\" tube trial", "diameter": 83.566, "thickness": 2.8, "moment": 0.025986, "elasticity": 10007760, "weight": 0.200 },
+    { "name": "1.5 thicker", "diameter": 79.0, "thickness": 4.9, "moment": 2.020000, "elasticity": 10007760, "weight": 2.130 },
+    { "name": "3\" tube -- trial", "diameter": 84.2, "thickness": 3.365, "moment": 2.090000, "elasticity": 10007760, "weight": 2.470 }
+]
