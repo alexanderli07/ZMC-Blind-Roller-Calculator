@@ -8,6 +8,8 @@ import {
   ScrollView,
   View,
   Text,
+  Image,
+  ImageBackground,
   Linking,
   TouchableOpacity,
   StyleSheet,
@@ -139,12 +141,24 @@ export default function App() {
   };
 
   return (
+    <ImageBackground
+      source={require('./assets/background.jpg')}
+      style={styles.bg}
+      resizeMode="cover"
+    >
     <SafeAreaView style={styles.safe}>
-      <ExpoStatusBar style="dark" />
+      <ExpoStatusBar style="light" />
       <ScrollView contentContainerStyle={styles.scroll}>
-        <Text style={styles.heading}>
-          Blind Roller Diameter & Weight Calculator
-        </Text>
+        <View style={styles.header}>
+          <Image
+            source={require('./assets/zmcLogo.png')}
+            style={styles.logo}
+            resizeMode="contain"
+          />
+          <Text style={styles.heading}>
+            Blind Roller Diameter & Weight Calculator
+          </Text>
+        </View>
 
         <ScrollablePicker
           title="Select Tube"
@@ -224,24 +238,42 @@ export default function App() {
         onSubmit={handleAddBottomBar}
       />
     </SafeAreaView>
+    </ImageBackground>
   );
 }
 
 const styles = StyleSheet.create({
+  bg: {
+    flex: 1,
+  },
   safe: {
     flex: 1,
-    backgroundColor: '#eef2f5',
+    backgroundColor: 'transparent',
     paddingTop: Platform.OS === 'android' ? StatusBar.currentHeight : 0,
   },
   scroll: {
     padding: 12,
     paddingBottom: 16,
   },
+  header: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: 8,
+  },
+  logo: {
+    width: 80,
+    height: 50,
+    marginRight: 8,
+  },
   heading: {
+    flex: 1,
     fontSize: 18,
     fontWeight: '700',
     textAlign: 'center',
-    marginBottom: 8,
+    color: '#fff',
+    textShadowColor: 'rgba(0,0,0,0.7)',
+    textShadowOffset: { width: 0, height: 1 },
+    textShadowRadius: 3,
   },
   inputRow: {
     flexDirection: 'row',
@@ -250,11 +282,15 @@ const styles = StyleSheet.create({
   results: {
     alignItems: 'center',
     marginVertical: 8,
+    backgroundColor: 'rgba(0,0,0,0.35)',
+    borderRadius: 10,
+    paddingVertical: 8,
   },
   result: {
     fontSize: 15,
     fontWeight: '600',
     marginVertical: 2,
+    color: '#fff',
   },
   footer: {
     flexDirection: 'row',
@@ -265,12 +301,19 @@ const styles = StyleSheet.create({
   link: {
     fontSize: 15,
     fontWeight: '700',
-    color: '#007AFF',
+    color: '#fff',
     marginRight: 30,
+    textShadowColor: 'rgba(0,0,0,0.7)',
+    textShadowOffset: { width: 0, height: 1 },
+    textShadowRadius: 3,
   },
   contact: {
     fontSize: 15,
     fontWeight: '700',
+    color: '#fff',
     marginLeft: 30,
+    textShadowColor: 'rgba(0,0,0,0.7)',
+    textShadowOffset: { width: 0, height: 1 },
+    textShadowRadius: 3,
   },
 });
