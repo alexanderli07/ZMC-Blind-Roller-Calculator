@@ -25,7 +25,15 @@ import {
   addFabricType,
   addTube,
   addBottomBar,
+  clearFabricTypes,
+  clearTubes,
+  clearBottomBars,
 } from './src/storage';
+import {
+  tubeFromInputs,
+  fabricFromInputs,
+  bottomBarFromInputs,
+} from './src/conversions';
 import {
   CalcInputs,
   totalWeightKg,
@@ -94,56 +102,59 @@ export default function App() {
   const deflectionMm = tubeDeflectionMm(inputs);
   const deflectionIn = tubeDeflectionInch(inputs);
 
-  // Field specs for the three "add" modals, matching the iOS forms.
+  // Field specs for the three "add" modals. Inputs use friendly units; the
+  // internal moment/weight/g-m² values are derived in the handlers below.
   const fabricFields: FieldSpec[] = [
     { key: 'name', label: 'Name', numeric: false },
-    { key: 'weight', label: 'Weight (g/m²)', numeric: true },
-    { key: 'thickness', label: 'Thickness (mm)', numeric: true },
+    { key: 'weight', label: 'Weight (oz/yd²)', numeric: true },
+    { key: 'thickness', label: 'Thickness (in)', numeric: true },
   ];
   const tubeFields: FieldSpec[] = [
     { key: 'name', label: 'Name', numeric: false },
-    { key: 'diameter', label: 'Diameter (mm)', numeric: true },
-    { key: 'thickness', label: 'Thickness (mm)', numeric: true },
-    { key: 'moment', label: 'Moment (cm^4)', numeric: true },
-    { key: 'elasticity', label: 'Elasticity (kg/cm²)', numeric: true },
-    { key: 'weight', label: 'Weight (kg/m)', numeric: true },
+    { key: 'diameter', label: 'Diameter (in)', numeric: true },
+    { key: 'thickness', label: 'Thickness (in)', numeric: true },
   ];
   const bottomBarFields: FieldSpec[] = [
     { key: 'name', label: 'Name', numeric: false },
-    { key: 'weightGM', label: 'Weight (gm/m)', numeric: true },
     { key: 'weightLbFt', label: 'Weight (lb/ft)', numeric: true },
   ];
 
   const handleAddFabric = async (v: Record<string, string>) => {
-    const updated = await addFabricType({
-      name: v.name,
-      weight: Number(v.weight),
-      thickness: Number(v.thickness),
-    });
+    const updated = await addFabricType(
+      fabricFromInputs(v.name, Number(v.weight), Number(v.thickness))
+    );
     setFabricTypes(updated);
     setActiveModal(null);
   };
 
   const handleAddTube = async (v: Record<string, string>) => {
-    const updated = await addTube({
-      name: v.name,
-      diameter: Number(v.diameter),
-      thickness: Number(v.thickness),
-      moment: Number(v.moment),
-      elasticity: Number(v.elasticity),
-      weight: Number(v.weight),
-    });
+    const updated = await addTube(
+      tubeFromInputs(v.name, Number(v.diameter), Number(v.thickness))
+    );
     setTubes(updated);
     setActiveModal(null);
   };
 
   const handleAddBottomBar = async (v: Record<string, string>) => {
-    const updated = await addBottomBar({
-      name: v.name,
-      weightGM: Number(v.weightGM),
-      weightLbFt: Number(v.weightLbFt),
-    });
+    const updated = await addBottomBar(
+      bottomBarFromInputs(v.name, Number(v.weightLbFt))
+    );
     setBottomBars(updated);
+    setActiveModal(null);
+  };
+
+  const handleRemoveAllFabrics = async () => {
+    setFabricTypes(await clearFabricTypes());
+    setActiveModal(null);
+  };
+
+  const handleRemoveAllTubes = async () => {
+    setTubes(await clearTubes());
+    setActiveModal(null);
+  };
+
+  const handleRemoveAllBottomBars = async () => {
+    setBottomBars(await clearBottomBars());
     setActiveModal(null);
   };
 
@@ -245,6 +256,8 @@ export default function App() {
         fields={fabricFields}
         onCancel={() => setActiveModal(null)}
         onSubmit={handleAddFabric}
+        onRemoveAll={handleRemoveAllFabrics}
+        removeAllLabel="Remove all user-defined fabric types"
       />
       <AddItemModal
         visible={activeModal === 'tube'}
@@ -252,6 +265,8 @@ export default function App() {
         fields={tubeFields}
         onCancel={() => setActiveModal(null)}
         onSubmit={handleAddTube}
+        onRemoveAll={handleRemoveAllTubes}
+        removeAllLabel="Remove all user-defined tubes"
       />
       <AddItemModal
         visible={activeModal === 'bottomBar'}
@@ -259,6 +274,8 @@ export default function App() {
         fields={bottomBarFields}
         onCancel={() => setActiveModal(null)}
         onSubmit={handleAddBottomBar}
+        onRemoveAll={handleRemoveAllBottomBars}
+        removeAllLabel="Remove all user-defined bottom bars"
       />
     </SafeAreaView>
   );

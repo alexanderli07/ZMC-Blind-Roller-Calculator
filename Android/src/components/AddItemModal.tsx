@@ -24,6 +24,8 @@ interface Props {
   fields: FieldSpec[];
   onCancel: () => void;
   onSubmit: (values: Record<string, string>) => void;
+  onRemoveAll?: () => void;
+  removeAllLabel?: string;
 }
 
 export default function AddItemModal({
@@ -32,6 +34,8 @@ export default function AddItemModal({
   fields,
   onCancel,
   onSubmit,
+  onRemoveAll,
+  removeAllLabel,
 }: Props) {
   const [values, setValues] = useState<Record<string, string>>({});
 
@@ -87,9 +91,17 @@ export default function AddItemModal({
               disabled={!allFilled}
               onPress={() => onSubmit(values)}
             >
-              <Text style={styles.saveText}>Save</Text>
+              <Text style={styles.saveText}>Confirm</Text>
             </TouchableOpacity>
           </View>
+
+          {onRemoveAll && (
+            <TouchableOpacity style={styles.removeAllButton} onPress={onRemoveAll}>
+              <Text style={styles.removeAllText}>
+                {removeAllLabel ?? 'Remove all user-defined items'}
+              </Text>
+            </TouchableOpacity>
+          )}
         </View>
       </View>
     </Modal>
@@ -161,5 +173,19 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontWeight: '600',
     color: '#fff',
+  },
+  removeAllButton: {
+    marginTop: 12,
+    paddingVertical: 10,
+    borderRadius: 8,
+    borderWidth: 1,
+    borderColor: '#e3b1b1',
+    backgroundColor: '#fdf2f2',
+    alignItems: 'center',
+  },
+  removeAllText: {
+    fontSize: 14,
+    fontWeight: '600',
+    color: '#c0392b',
   },
 });

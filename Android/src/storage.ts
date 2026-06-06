@@ -58,3 +58,19 @@ export async function addBottomBar(item: BottomBar): Promise<BottomBar[]> {
   await appendCustom(KEY_BOTTOM_BAR, item);
   return loadBottomBars();
 }
+
+// Remove all user-added items for a category, reverting to the bundled defaults.
+export async function clearFabricTypes(): Promise<FabricType[]> {
+  await AsyncStorage.removeItem(KEY_FABRIC);
+  return loadFabricTypes();
+}
+
+export async function clearTubes(): Promise<Tube[]> {
+  await AsyncStorage.removeItem(KEY_TUBE);
+  return loadTubes();
+}
+
+export async function clearBottomBars(): Promise<BottomBar[]> {
+  await AsyncStorage.removeItem(KEY_BOTTOM_BAR);
+  return loadBottomBars();
+}
