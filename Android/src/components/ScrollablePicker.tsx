@@ -1,7 +1,7 @@
 // Wheel/dropdown picker with a "+" add button — port of ScrollablePickerSection.
 
 import React from 'react';
-import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
+import { View, Text, TouchableOpacity, StyleSheet, Platform } from 'react-native';
 import { Picker } from '@react-native-picker/picker';
 
 interface Props {
@@ -34,6 +34,8 @@ export default function ScrollablePicker({
         <Picker
           selectedValue={selection}
           onValueChange={(value) => onSelect(String(value))}
+          style={styles.picker}
+          itemStyle={styles.pickerItem}
         >
           <Picker.Item label="Choose an option…" value="" />
           {options.map((option) => (
@@ -45,33 +47,38 @@ export default function ScrollablePicker({
   );
 }
 
+// On iOS the Picker is a tall spinning wheel; clip it to a compact height so
+// all three pickers + inputs + results fit on screen without scrolling.
+// On Android the Picker is already a compact dropdown.
+const PICKER_HEIGHT = Platform.OS === 'ios' ? 88 : 48;
+
 const styles = StyleSheet.create({
   container: {
-    marginBottom: 12,
+    marginBottom: 4,
   },
   header: {
     flexDirection: 'row',
     alignItems: 'center',
-    marginBottom: 5,
+    marginBottom: 2,
   },
   title: {
-    fontSize: 17,
+    fontSize: 15,
     fontWeight: '600',
   },
   addButton: {
     marginLeft: 8,
-    width: 24,
-    height: 24,
-    borderRadius: 12,
+    width: 22,
+    height: 22,
+    borderRadius: 11,
     backgroundColor: '#007AFF',
     alignItems: 'center',
     justifyContent: 'center',
   },
   addButtonText: {
     color: '#fff',
-    fontSize: 18,
+    fontSize: 16,
     fontWeight: '700',
-    lineHeight: 20,
+    lineHeight: 18,
   },
   pickerWrapper: {
     backgroundColor: '#fff',
@@ -79,5 +86,14 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: '#d0d5da',
     overflow: 'hidden',
+    height: PICKER_HEIGHT,
+    justifyContent: 'center',
+  },
+  picker: {
+    height: PICKER_HEIGHT,
+  },
+  pickerItem: {
+    height: PICKER_HEIGHT,
+    fontSize: 16,
   },
 });
