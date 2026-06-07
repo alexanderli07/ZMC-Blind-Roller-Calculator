@@ -1,0 +1,13 @@
+[
+  { "name": "slim bottom bar w/fab insert", "weightLbFt": 0.141, "weightGM": 210 },
+  { "name": "external hem bar", "weightLbFt": 0.1702, "weightGM": 253 },
+  { "name": "Heavy duty bottom bar", "weightLbFt": 0.2648, "weightGM": 394 },
+  { "name": "RS Alum. bottom bar", "weightLbFt": 0.1942, "weightGM": 300 },
+  { "name": "internal hem bar", "weightLbFt": 0.1421, "weightGM": 212 },
+  { "name": "slim bottom bar", "weightLbFt": 0.128, "weightGM": 191 },
+  { "name": "Wrapped Bottom Bar", "weightLbFt": 0.1326, "weightGM": 198 },
+  { "name": "Internal Solid Bar", "weightLbFt": 0.2275, "weightGM": 341 },
+  { "name": "WJ-310/610 square rod steel bar", "weightLbFt": 0.208, "weightGM": 310 },
+  { "name": "closed bottom bar(ST-D4*)", "weightLbFt": 0.2161, "weightGM": 322 },
+  { "name": "Rolling Rod(ST-D0*)", "weightLbFt": 0.1469, "weightGM": 220 }
+]
