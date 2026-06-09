@@ -234,33 +234,33 @@ const styles = StyleSheet.create({
     paddingTop: Platform.OS === 'android' ? StatusBar.currentHeight : 0,
   },
   scroll: {
-    padding: 16,
-    paddingBottom: 40,
+    padding: 12,
+    paddingBottom: 16,
   },
   heading: {
-    fontSize: 22,
+    fontSize: 18,
     fontWeight: '700',
     textAlign: 'center',
-    marginBottom: 16,
+    marginBottom: 8,
   },
   inputRow: {
     flexDirection: 'row',
-    marginBottom: 16,
+    marginBottom: 8,
   },
   results: {
     alignItems: 'center',
-    marginVertical: 16,
+    marginVertical: 8,
   },
   result: {
-    fontSize: 17,
+    fontSize: 15,
     fontWeight: '600',
-    marginVertical: 4,
+    marginVertical: 2,
   },
   footer: {
     flexDirection: 'row',
     justifyContent: 'center',
     alignItems: 'center',
-    marginTop: 20,
+    marginTop: 10,
   },
   link: {
     fontSize: 15,
