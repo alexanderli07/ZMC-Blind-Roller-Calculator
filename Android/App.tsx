@@ -9,7 +9,6 @@ import {
   View,
   Text,
   Image,
-  ImageBackground,
   Linking,
   TouchableOpacity,
   StyleSheet,
@@ -29,9 +28,14 @@ import {
 } from './src/storage';
 import {
   CalcInputs,
-  totalWeight,
-  rollerDiameter,
-  totalDeflection,
+  totalWeightKg,
+  totalWeightLb,
+  rollerDiameterMm,
+  rollerDiameterInch,
+  tubeDeflectionMm,
+  tubeDeflectionInch,
+  MAX_DEFLECTION_IN,
+  MAX_DEFLECTION_MM,
 } from './src/calculations';
 import ScrollablePicker from './src/components/ScrollablePicker';
 import InputField from './src/components/InputField';
@@ -83,9 +87,12 @@ export default function App() {
     blindHeight,
   };
 
-  const weight = totalWeight(inputs);
-  const diameter = rollerDiameter(inputs);
-  const deflection = totalDeflection(inputs);
+  const weightKg = totalWeightKg(inputs);
+  const weightLb = totalWeightLb(inputs);
+  const diameterMm = rollerDiameterMm(inputs);
+  const diameterIn = rollerDiameterInch(inputs);
+  const deflectionMm = tubeDeflectionMm(inputs);
+  const deflectionIn = tubeDeflectionInch(inputs);
 
   // Field specs for the three "add" modals, matching the iOS forms.
   const fabricFields: FieldSpec[] = [
@@ -141,13 +148,8 @@ export default function App() {
   };
 
   return (
-    <ImageBackground
-      source={require('./assets/background.jpg')}
-      style={styles.bg}
-      resizeMode="cover"
-    >
     <SafeAreaView style={styles.safe}>
-      <ExpoStatusBar style="light" />
+      <ExpoStatusBar style="dark" />
       <ScrollView contentContainerStyle={styles.scroll}>
         <View style={styles.header}>
           <Image
@@ -184,27 +186,43 @@ export default function App() {
 
         <View style={styles.inputRow}>
           <InputField
-            title="Blind Width (mm)"
+            title="Blind Width (in)"
             value={blindWidth}
             onChangeText={setBlindWidth}
           />
           <View style={{ width: 10 }} />
           <InputField
-            title="Blind Height (mm)"
+            title="Blind Height (in)"
             value={blindHeight}
             onChangeText={setBlindHeight}
           />
         </View>
 
         <View style={styles.results}>
-          <Text style={styles.result}>
-            Total Weight: {weight.toFixed(3)} kg
-          </Text>
-          <Text style={styles.result}>
-            Roller Diameter: {diameter.toFixed(3)} mm
-          </Text>
-          <Text style={styles.result}>
-            Total Deflection: {deflection.toFixed(3)} mm
+          <View style={styles.resultRow}>
+            <Text style={styles.resultLabel}>Total Weight:</Text>
+            <Text style={styles.resultValue}>
+              {weightLb.toFixed(3)} lb  ({weightKg.toFixed(3)} kg)
+            </Text>
+          </View>
+          <View style={styles.resultRow}>
+            <Text style={styles.resultLabel}>Roller Diameter:</Text>
+            <Text style={styles.resultValue}>
+              {diameterIn.toFixed(3)} in  ({diameterMm.toFixed(3)} mm)
+            </Text>
+          </View>
+          <View style={styles.resultRow}>
+            <Text style={styles.resultLabel}>Tube Deflection:</Text>
+            <Text style={styles.resultValue}>
+              {deflectionIn.toFixed(3)} in  ({deflectionMm.toFixed(3)} mm)
+            </Text>
+          </View>
+
+          <Text style={styles.note}>
+            [ <Text style={styles.noteRed}>Deflection</Text> should be less than{' '}
+            <Text style={styles.noteRed}>
+              {MAX_DEFLECTION_IN} in ({MAX_DEFLECTION_MM} mm)
+            </Text> ]
           </Text>
         </View>
 
@@ -238,17 +256,13 @@ export default function App() {
         onSubmit={handleAddBottomBar}
       />
     </SafeAreaView>
-    </ImageBackground>
   );
 }
 
 const styles = StyleSheet.create({
-  bg: {
-    flex: 1,
-  },
   safe: {
     flex: 1,
-    backgroundColor: 'transparent',
+    backgroundColor: '#eef2f5',
     paddingTop: Platform.OS === 'android' ? StatusBar.currentHeight : 0,
   },
   scroll: {
@@ -258,39 +272,54 @@ const styles = StyleSheet.create({
   header: {
     flexDirection: 'row',
     alignItems: 'center',
-    marginBottom: 8,
+    marginBottom: 10,
   },
   logo: {
-    width: 80,
-    height: 50,
-    marginRight: 8,
+    width: 130,
+    height: 80,
+    marginRight: 10,
   },
   heading: {
     flex: 1,
-    fontSize: 18,
+    fontSize: 24,
     fontWeight: '700',
     textAlign: 'center',
-    color: '#fff',
-    textShadowColor: 'rgba(0,0,0,0.7)',
-    textShadowOffset: { width: 0, height: 1 },
-    textShadowRadius: 3,
   },
   inputRow: {
     flexDirection: 'row',
     marginBottom: 8,
   },
   results: {
-    alignItems: 'center',
     marginVertical: 8,
-    backgroundColor: 'rgba(0,0,0,0.35)',
+    backgroundColor: '#fff',
     borderRadius: 10,
-    paddingVertical: 8,
+    borderWidth: 1,
+    borderColor: '#d0d5da',
+    padding: 12,
   },
-  result: {
+  resultRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginVertical: 3,
+  },
+  resultLabel: {
+    width: 120,
+    fontSize: 15,
+    fontWeight: '700',
+  },
+  resultValue: {
+    flex: 1,
     fontSize: 15,
     fontWeight: '600',
-    marginVertical: 2,
-    color: '#fff',
+  },
+  note: {
+    marginTop: 8,
+    fontSize: 12,
+    textAlign: 'center',
+  },
+  noteRed: {
+    color: '#d11',
+    fontWeight: '700',
   },
   footer: {
     flexDirection: 'row',
@@ -301,19 +330,12 @@ const styles = StyleSheet.create({
   link: {
     fontSize: 15,
     fontWeight: '700',
-    color: '#fff',
+    color: '#007AFF',
     marginRight: 30,
-    textShadowColor: 'rgba(0,0,0,0.7)',
-    textShadowOffset: { width: 0, height: 1 },
-    textShadowRadius: 3,
   },
   contact: {
     fontSize: 15,
     fontWeight: '700',
-    color: '#fff',
     marginLeft: 30,
-    textShadowColor: 'rgba(0,0,0,0.7)',
-    textShadowOffset: { width: 0, height: 1 },
-    textShadowRadius: 3,
   },
 });
