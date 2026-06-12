@@ -200,21 +200,26 @@ export default function App() {
 
         <View style={styles.results}>
           <View style={styles.resultRow}>
-            <Text style={styles.resultLabel}>Total Weight:</Text>
+            <Text style={styles.resultLabel}>Total Weight</Text>
             <Text style={styles.resultValue}>
-              {weightLb.toFixed(3)} lb  ({weightKg.toFixed(3)} kg)
+              {weightLb.toFixed(3)} lb{' '}
+              <Text style={styles.resultSub}>({weightKg.toFixed(3)} kg)</Text>
             </Text>
           </View>
+          <View style={styles.divider} />
           <View style={styles.resultRow}>
-            <Text style={styles.resultLabel}>Roller Diameter:</Text>
+            <Text style={styles.resultLabel}>Roller Diameter</Text>
             <Text style={styles.resultValue}>
-              {diameterIn.toFixed(3)} in  ({diameterMm.toFixed(3)} mm)
+              {diameterIn.toFixed(3)} in{' '}
+              <Text style={styles.resultSub}>({diameterMm.toFixed(3)} mm)</Text>
             </Text>
           </View>
+          <View style={styles.divider} />
           <View style={styles.resultRow}>
-            <Text style={styles.resultLabel}>Tube Deflection:</Text>
+            <Text style={styles.resultLabel}>Tube Deflection</Text>
             <Text style={styles.resultValue}>
-              {deflectionIn.toFixed(3)} in  ({deflectionMm.toFixed(3)} mm)
+              {deflectionIn.toFixed(3)} in{' '}
+              <Text style={styles.resultSub}>({deflectionMm.toFixed(3)} mm)</Text>
             </Text>
           </View>
 
@@ -292,28 +297,46 @@ const styles = StyleSheet.create({
   results: {
     marginVertical: 8,
     backgroundColor: '#fff',
-    borderRadius: 10,
+    borderRadius: 12,
     borderWidth: 1,
     borderColor: '#d0d5da',
-    padding: 12,
+    paddingHorizontal: 14,
+    paddingVertical: 6,
+    shadowColor: '#000',
+    shadowOpacity: 0.06,
+    shadowRadius: 4,
+    shadowOffset: { width: 0, height: 2 },
+    elevation: 2,
   },
   resultRow: {
     flexDirection: 'row',
+    justifyContent: 'space-between',
     alignItems: 'center',
-    marginVertical: 3,
+    paddingVertical: 8,
   },
   resultLabel: {
-    width: 120,
-    fontSize: 15,
-    fontWeight: '700',
-  },
-  resultValue: {
-    flex: 1,
     fontSize: 15,
     fontWeight: '600',
+    color: '#55606a',
+  },
+  resultValue: {
+    fontSize: 17,
+    fontWeight: '700',
+    color: '#1a1d21',
+    textAlign: 'right',
+  },
+  resultSub: {
+    fontSize: 13,
+    fontWeight: '500',
+    color: '#8a939c',
+  },
+  divider: {
+    height: 1,
+    backgroundColor: '#eceff2',
   },
   note: {
-    marginTop: 8,
+    marginTop: 10,
+    marginBottom: 4,
     fontSize: 12,
     textAlign: 'center',
   },
