@@ -11,6 +11,7 @@ import {
   StyleSheet,
   ScrollView,
 } from 'react-native';
+import { ValidationResult } from '../validation';
 
 export interface FieldSpec {
   key: string;
@@ -18,36 +19,76 @@ export interface FieldSpec {
   numeric: boolean;
 }
 
-interface Props {
+interface Props<T> {
   visible: boolean;
   title: string;
   fields: FieldSpec[];
   onCancel: () => void;
-  onSubmit: (values: Record<string, string>) => void;
-  onRemoveAll?: () => void;
+  validate: (values: Record<string, string>) => ValidationResult<T>;
+  onSubmit: (value: T) => Promise<void> | void;
+  onRemoveAll?: () => Promise<void> | void;
   removeAllLabel?: string;
 }
 
-export default function AddItemModal({
+export default function AddItemModal<T,>({
   visible,
   title,
   fields,
   onCancel,
+  validate,
   onSubmit,
   onRemoveAll,
   removeAllLabel,
-}: Props) {
+}: Props<T>) {
   const [values, setValues] = useState<Record<string, string>>({});
+  const [error, setError] = useState<string | null>(null);
+  const [submitting, setSubmitting] = useState(false);
 
   // Reset the form each time the modal is opened.
   useEffect(() => {
-    if (visible) setValues({});
+    if (visible) {
+      setValues({});
+      setError(null);
+      setSubmitting(false);
+    }
   }, [visible]);
 
   const setField = (key: string, value: string) =>
     setValues((prev) => ({ ...prev, [key]: value }));
 
-  const allFilled = fields.every((f) => (values[f.key] ?? '').trim() !== '');
+  const handleConfirm = async () => {
+    if (submitting) return;
+
+    const result = validate(values);
+    if (!result.ok) {
+      setError(result.error);
+      return;
+    }
+
+    setError(null);
+    setSubmitting(true);
+    try {
+      await onSubmit(result.value);
+    } catch {
+      setError('Could not save the item. Please try again.');
+    } finally {
+      setSubmitting(false);
+    }
+  };
+
+  const handleRemoveAll = async () => {
+    if (!onRemoveAll || submitting) return;
+
+    setError(null);
+    setSubmitting(true);
+    try {
+      await onRemoveAll();
+    } catch {
+      setError('Could not remove the items. Please try again.');
+    } finally {
+      setSubmitting(false);
+    }
+  };
 
   return (
     <Modal
@@ -75,6 +116,8 @@ export default function AddItemModal({
             ))}
           </ScrollView>
 
+          {error && <Text style={styles.errorText}>{error}</Text>}
+
           <View style={styles.buttonRow}>
             <TouchableOpacity
               style={[styles.button, styles.cancelButton]}
@@ -86,17 +129,21 @@ export default function AddItemModal({
               style={[
                 styles.button,
                 styles.saveButton,
-                !allFilled && styles.disabledButton,
+                submitting && styles.disabledButton,
               ]}
-              disabled={!allFilled}
-              onPress={() => onSubmit(values)}
+              disabled={submitting}
+              onPress={handleConfirm}
             >
               <Text style={styles.saveText}>Confirm</Text>
             </TouchableOpacity>
           </View>
 
           {onRemoveAll && (
-            <TouchableOpacity style={styles.removeAllButton} onPress={onRemoveAll}>
+            <TouchableOpacity
+              style={[styles.removeAllButton, submitting && styles.disabledButton]}
+              disabled={submitting}
+              onPress={handleRemoveAll}
+            >
               <Text style={styles.removeAllText}>
                 {removeAllLabel ?? 'Remove all user-defined items'}
               </Text>
@@ -173,6 +220,12 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontWeight: '600',
     color: '#fff',
+  },
+  errorText: {
+    color: '#c0392b',
+    fontSize: 14,
+    marginTop: 4,
+    textAlign: 'center',
   },
   removeAllButton: {
     marginTop: 12,
