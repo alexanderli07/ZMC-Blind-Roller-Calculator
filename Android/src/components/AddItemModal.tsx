@@ -1,7 +1,7 @@
 // Generic "add new item" modal — port of AddFabricTypeView / AddTubeView /
 // AddBottomBarView, driven by a list of field specs.
 
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import {
   Modal,
   View,
@@ -17,6 +17,13 @@ export interface FieldSpec {
   key: string;
   label: string;
   numeric: boolean;
+}
+
+function emptyValuesFor(fields: FieldSpec[]): Record<string, string> {
+  return fields.reduce<Record<string, string>>((values, field) => {
+    values[field.key] = '';
+    return values;
+  }, {});
 }
 
 interface Props<T> {
@@ -40,18 +47,20 @@ export default function AddItemModal<T,>({
   onRemoveAll,
   removeAllLabel,
 }: Props<T>) {
-  const [values, setValues] = useState<Record<string, string>>({});
+  const [values, setValues] = useState<Record<string, string>>(() => emptyValuesFor(fields));
   const [error, setError] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
+  const wasVisible = useRef(false);
 
   // Reset the form each time the modal is opened.
   useEffect(() => {
-    if (visible) {
-      setValues({});
+    if (visible && !wasVisible.current) {
+      setValues(emptyValuesFor(fields));
       setError(null);
       setSubmitting(false);
     }
-  }, [visible]);
+    wasVisible.current = visible;
+  }, [fields, visible]);
 
   const setField = (key: string, value: string) =>
     setValues((prev) => ({ ...prev, [key]: value }));
