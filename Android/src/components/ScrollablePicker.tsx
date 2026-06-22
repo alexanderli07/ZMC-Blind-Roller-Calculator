@@ -19,6 +19,8 @@ export default function ScrollablePicker({
   onSelect,
   onAdd,
 }: Props) {
+  const testID = `${title.toLowerCase().replace(/\s+/g, '-')}-picker`;
+
   return (
     <View style={styles.container}>
       <View style={styles.header}>
@@ -36,6 +38,7 @@ export default function ScrollablePicker({
           onValueChange={(value) => onSelect(String(value))}
           style={styles.picker}
           itemStyle={styles.pickerItem}
+          testID={testID}
         >
           <Picker.Item label="Choose an option…" value="" />
           {options.map((option) => (

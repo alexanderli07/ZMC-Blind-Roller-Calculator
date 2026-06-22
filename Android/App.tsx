@@ -52,6 +52,7 @@ import {
   tubeDeflectionInch,
   MAX_DEFLECTION_IN,
   MAX_DEFLECTION_MM,
+  parsePositiveNumber,
 } from './src/calculations';
 import ScrollablePicker from './src/components/ScrollablePicker';
 import InputField from './src/components/InputField';
@@ -72,6 +73,11 @@ export default function App() {
   const [blindHeight, setBlindHeight] = useState('');
 
   const [activeModal, setActiveModal] = useState<ModalKind>(null);
+
+  const measurementError = (value: string) =>
+    value.trim() !== '' && parsePositiveNumber(value) === null
+      ? 'Enter a number greater than 0.'
+      : undefined;
 
   // Load data on mount (mirrors DataManager.init -> loadData).
   useEffect(() => {
@@ -208,12 +214,16 @@ export default function App() {
             title="Blind Width (in)"
             value={blindWidth}
             onChangeText={setBlindWidth}
+            error={measurementError(blindWidth)}
+            testID="blind-width-input"
           />
           <View style={{ width: 10 }} />
           <InputField
             title="Blind Height (in)"
             value={blindHeight}
             onChangeText={setBlindHeight}
+            error={measurementError(blindHeight)}
+            testID="blind-height-input"
           />
         </View>
 

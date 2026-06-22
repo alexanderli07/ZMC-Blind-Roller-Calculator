@@ -7,9 +7,11 @@ interface Props {
   title: string;
   value: string;
   onChangeText: (value: string) => void;
+  error?: string;
+  testID?: string;
 }
 
-export default function InputField({ title, value, onChangeText }: Props) {
+export default function InputField({ title, value, onChangeText, error, testID }: Props) {
   return (
     <View style={styles.container}>
       <Text style={styles.title}>{title}</Text>
@@ -19,7 +21,9 @@ export default function InputField({ title, value, onChangeText }: Props) {
         onChangeText={onChangeText}
         placeholder={title}
         keyboardType="decimal-pad"
+        testID={testID}
       />
+      {error && <Text style={styles.error}>{error}</Text>}
     </View>
   );
 }
@@ -41,5 +45,10 @@ const styles = StyleSheet.create({
     paddingHorizontal: 10,
     paddingVertical: 8,
     fontSize: 16,
+  },
+  error: {
+    color: '#c0392b',
+    fontSize: 12,
+    marginTop: 3,
   },
 });
