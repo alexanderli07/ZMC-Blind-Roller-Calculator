@@ -1,4 +1,5 @@
 import { parsePositiveNumber } from './calculations';
+import { bottomBarFromInputs, fabricFromInputs, tubeFromInputs } from './conversions';
 
 export type ValidationResult<T> =
   | { ok: true; value: T }
@@ -21,13 +22,21 @@ export interface BottomBarInput {
   weightLbFt: number;
 }
 
+const OUT_OF_RANGE_ERROR = 'Values are outside the supported calculation range.';
+
+function areFiniteAndPositive(values: number[]): boolean {
+  return values.every((value) => Number.isFinite(value) && value > 0);
+}
+
 function validateName(name: string, existingNames: string[]): ValidationResult<string> {
   const trimmedName = name.trim();
   if (trimmedName === '') {
     return { ok: false, error: 'Name is required.' };
   }
 
-  if (existingNames.some((existingName) => existingName.toLowerCase() === trimmedName.toLowerCase())) {
+  if (existingNames.some(
+    (existingName) => existingName.trim().toLowerCase() === trimmedName.toLowerCase()
+  )) {
     return { ok: false, error: 'An item with this name already exists.' };
   }
 
@@ -49,6 +58,11 @@ export function validateFabricInput(
   const thickness = parsePositiveNumber(values.thickness);
   if (thickness === null) {
     return { ok: false, error: 'Thickness must be a number greater than 0.' };
+  }
+
+  const converted = fabricFromInputs(name.value, weight, thickness);
+  if (!areFiniteAndPositive([converted.weight, converted.thickness])) {
+    return { ok: false, error: OUT_OF_RANGE_ERROR };
   }
 
   return { ok: true, value: { name: name.value, weight, thickness } };
@@ -75,6 +89,17 @@ export function validateTubeInput(
     return { ok: false, error: 'Thickness must be less than half the diameter.' };
   }
 
+  const converted = tubeFromInputs(name.value, diameter, thickness);
+  if (!areFiniteAndPositive([
+    converted.diameter,
+    converted.thickness ?? 0,
+    converted.moment,
+    converted.elasticity,
+    converted.weight,
+  ])) {
+    return { ok: false, error: OUT_OF_RANGE_ERROR };
+  }
+
   return { ok: true, value: { name: name.value, diameter, thickness } };
 }
 
@@ -88,6 +113,11 @@ export function validateBottomBarInput(
   const weightLbFt = parsePositiveNumber(values.weightLbFt);
   if (weightLbFt === null) {
     return { ok: false, error: 'Weight must be a number greater than 0.' };
+  }
+
+  const converted = bottomBarFromInputs(name.value, weightLbFt);
+  if (!areFiniteAndPositive([converted.weightLbFt, converted.weightGM])) {
+    return { ok: false, error: OUT_OF_RANGE_ERROR };
   }
 
   return { ok: true, value: { name: name.value, weightLbFt } };
