@@ -10,7 +10,7 @@ interface Props {
   onSelect: (preference: ThemePreference) => Promise<void>;
 }
 
-const OPTIONS: Array<{ value: ThemePreference; label: string }> = [
+const OPTIONS: { value: ThemePreference; label: string }[] = [
   { value: 'system', label: 'System' },
   { value: 'light', label: 'Light' },
   { value: 'dark', label: 'Dark' },
