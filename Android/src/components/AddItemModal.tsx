@@ -1,7 +1,7 @@
 // Generic "add new item" modal — port of AddFabricTypeView / AddTubeView /
 // AddBottomBarView, driven by a list of field specs.
 
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import {
   Modal,
   View,
@@ -11,6 +11,7 @@ import {
   StyleSheet,
   ScrollView,
 } from 'react-native';
+import { ValidationResult } from '../validation';
 
 export interface FieldSpec {
   key: string;
@@ -18,43 +19,102 @@ export interface FieldSpec {
   numeric: boolean;
 }
 
-interface Props {
+function emptyValuesFor(fields: FieldSpec[]): Record<string, string> {
+  return fields.reduce<Record<string, string>>((values, field) => {
+    values[field.key] = '';
+    return values;
+  }, {});
+}
+
+interface Props<T> {
   visible: boolean;
   title: string;
   fields: FieldSpec[];
   onCancel: () => void;
-  onSubmit: (values: Record<string, string>) => void;
-  onRemoveAll?: () => void;
+  validate: (values: Record<string, string>) => ValidationResult<T>;
+  onSubmit: (value: T) => Promise<void> | void;
+  onRemoveAll?: () => Promise<void> | void;
   removeAllLabel?: string;
 }
 
-export default function AddItemModal({
+export default function AddItemModal<T,>({
   visible,
   title,
   fields,
   onCancel,
+  validate,
   onSubmit,
   onRemoveAll,
   removeAllLabel,
-}: Props) {
-  const [values, setValues] = useState<Record<string, string>>({});
+}: Props<T>) {
+  const [values, setValues] = useState<Record<string, string>>(() => emptyValuesFor(fields));
+  const [error, setError] = useState<string | null>(null);
+  const [submitting, setSubmitting] = useState(false);
+  const inFlight = useRef(false);
+  const wasVisible = useRef(false);
 
-  // Reset the form each time the modal is opened.
+  // Reset only on an idle open; reopening cannot supersede pending work.
   useEffect(() => {
-    if (visible) setValues({});
-  }, [visible]);
+    if (visible && !wasVisible.current && !inFlight.current) {
+      setValues(emptyValuesFor(fields));
+      setError(null);
+      setSubmitting(false);
+    }
+    wasVisible.current = visible;
+  }, [fields, visible]);
 
   const setField = (key: string, value: string) =>
     setValues((prev) => ({ ...prev, [key]: value }));
 
-  const allFilled = fields.every((f) => (values[f.key] ?? '').trim() !== '');
+  const handleCancel = () => {
+    if (inFlight.current) return;
+    onCancel();
+  };
+
+  const handleConfirm = async () => {
+    if (inFlight.current) return;
+
+    const result = validate(values);
+    if (!result.ok) {
+      setError(result.error);
+      return;
+    }
+
+    setError(null);
+    inFlight.current = true;
+    setSubmitting(true);
+    try {
+      await onSubmit(result.value);
+    } catch {
+      setError('Could not save the item. Please try again.');
+    } finally {
+      inFlight.current = false;
+      setSubmitting(false);
+    }
+  };
+
+  const handleRemoveAll = async () => {
+    if (!onRemoveAll || inFlight.current) return;
+
+    setError(null);
+    inFlight.current = true;
+    setSubmitting(true);
+    try {
+      await onRemoveAll();
+    } catch {
+      setError('Could not remove the items. Please try again.');
+    } finally {
+      inFlight.current = false;
+      setSubmitting(false);
+    }
+  };
 
   return (
     <Modal
       visible={visible}
       animationType="slide"
       transparent
-      onRequestClose={onCancel}
+      onRequestClose={handleCancel}
     >
       <View style={styles.backdrop}>
         <View style={styles.sheet}>
@@ -75,10 +135,17 @@ export default function AddItemModal({
             ))}
           </ScrollView>
 
+          {error && <Text style={styles.errorText}>{error}</Text>}
+
           <View style={styles.buttonRow}>
             <TouchableOpacity
-              style={[styles.button, styles.cancelButton]}
-              onPress={onCancel}
+              style={[
+                styles.button,
+                styles.cancelButton,
+                submitting && styles.disabledButton,
+              ]}
+              disabled={submitting}
+              onPress={handleCancel}
             >
               <Text style={styles.cancelText}>Cancel</Text>
             </TouchableOpacity>
@@ -86,17 +153,21 @@ export default function AddItemModal({
               style={[
                 styles.button,
                 styles.saveButton,
-                !allFilled && styles.disabledButton,
+                submitting && styles.disabledButton,
               ]}
-              disabled={!allFilled}
-              onPress={() => onSubmit(values)}
+              disabled={submitting}
+              onPress={handleConfirm}
             >
               <Text style={styles.saveText}>Confirm</Text>
             </TouchableOpacity>
           </View>
 
           {onRemoveAll && (
-            <TouchableOpacity style={styles.removeAllButton} onPress={onRemoveAll}>
+            <TouchableOpacity
+              style={[styles.removeAllButton, submitting && styles.disabledButton]}
+              disabled={submitting}
+              onPress={handleRemoveAll}
+            >
               <Text style={styles.removeAllText}>
                 {removeAllLabel ?? 'Remove all user-defined items'}
               </Text>
@@ -173,6 +244,12 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontWeight: '600',
     color: '#fff',
+  },
+  errorText: {
+    color: '#c0392b',
+    fontSize: 14,
+    marginTop: 4,
+    textAlign: 'center',
   },
   removeAllButton: {
     marginTop: 12,

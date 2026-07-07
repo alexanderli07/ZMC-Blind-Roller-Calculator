@@ -1,12 +1,15 @@
 # ZMC Blind Roller Calculator — Android (Expo / React Native)
 
-Android port of the iOS SwiftUI app. Calculates, for a roller blind:
+Android port of the iOS SwiftUI app. It calculates the total weight, rolled-up
+roller diameter, and tube deflection for a roller blind. All formulas, defaults,
+and data are ported from the original Swift code.
 
-- **Total Weight** (kg) — fabric sheet weight + bottom bar weight
-- **Roller Diameter** (mm) — rolled-up fabric diameter via an Archimedean-spiral solve
-- **Total Deflection** (mm) — point-load (blind weight) + distributed-load (tube self-weight) beam deflection
+## Formulas
 
-All formulas, defaults, and data are ported verbatim from the original Swift code.
+- **Total weight:** fabric sheet weight plus bottom-bar weight.
+- **Roller diameter:** an Archimedean-spiral solve for the rolled fabric.
+- **Total deflection:** point-load (blind weight) and distributed-load (tube
+  self-weight) beam deflection.
 
 ## Stack
 
@@ -25,7 +28,7 @@ src/
   storage.ts                bundled defaults + persisted custom items
   data/
     fabricTypes.json        28 fabrics (g/m², mm)
-    tubes.json              18 tubes (mm, cm^4, psi, kg/m)
+    tubes.json              18 tubes (mm, in^4, PSI, lb/ft)
     bottomBars.json         11 bottom bars (g/m, lb/ft)
   components/
     ScrollablePicker.tsx
@@ -33,28 +36,40 @@ src/
     AddItemModal.tsx        generic add-new-item modal (fabric/tube/bottom bar)
 ```
 
-## Run it
+## Install and run with Expo Go
 
-```bash
-cd "ZMC Blind Roller Calculator Android"
-npm install
+From the repository root:
 
-# Android emulator or device (requires Android Studio / a connected device):
-npm run android
-
-# Or scan the QR code with the Expo Go app:
-npm start
-
-# Or preview in a browser:
-npm run web
+```powershell
+cd Android
+npm.cmd ci
+npm.cmd start
 ```
 
-## Build an installable APK / Play Store bundle
+Install Expo Go on the Android phone, keep the phone and computer on the same Wi-Fi network, and scan the terminal QR code. If LAN discovery is blocked, run `npm.cmd start -- --tunnel`.
 
-Use EAS Build (cloud, no Android Studio needed):
+## Automated checks
 
-```bash
-npm install -g eas-cli
-eas build -p android --profile preview   # APK for testing
-eas build -p android --profile production # AAB for the Play Store
+```powershell
+npm.cmd run check
 ```
+
+Individual commands are `npm.cmd test`, `npm.cmd run test:watch`, `npm.cmd run typecheck`, and `npm.cmd run lint`.
+
+## Manual calculation check
+
+For `1TU`, `deluxe`, `slim bottom bar w/fab insert`, width `72`, and height `96`, expect:
+
+- `3.845 lb (1.744 kg)` total weight
+- `1.574 in (39.975 mm)` roller diameter
+- `0.127 in (3.223 mm)` tube deflection
+
+## Android builds with EAS
+
+```powershell
+npx.cmd eas-cli@latest login
+npx.cmd eas-cli@latest build -p android --profile preview
+npx.cmd eas-cli@latest build -p android --profile production
+```
+
+The preview profile produces an internally distributed APK. The production profile produces the default Play Store App Bundle.
