@@ -57,10 +57,43 @@ import {
 import ScrollablePicker from './src/components/ScrollablePicker';
 import InputField from './src/components/InputField';
 import AddItemModal, { FieldSpec } from './src/components/AddItemModal';
+import AppearanceModal from './src/components/AppearanceModal';
+import {
+  ThemeColors,
+  ThemePreference,
+  ThemeProvider,
+  useTheme,
+} from './src/theme/theme';
 
 type ModalKind = 'fabric' | 'tube' | 'bottomBar' | null;
 
-export default function App() {
+function CalculatorApp() {
+  const {
+    preference,
+    resolvedTheme,
+    colors,
+    saveError,
+    setPreference,
+    clearSaveError,
+  } = useTheme();
+  const styles = useMemo(() => createStyles(colors), [colors]);
+  const [appearanceVisible, setAppearanceVisible] = useState(false);
+
+  const openAppearance = () => {
+    clearSaveError();
+    setAppearanceVisible(true);
+  };
+
+  const closeAppearance = () => {
+    clearSaveError();
+    setAppearanceVisible(false);
+  };
+
+  const selectAppearance = async (next: ThemePreference) => {
+    const saved = await setPreference(next);
+    if (saved) setAppearanceVisible(false);
+  };
+
   const [tubes, setTubes] = useState<Tube[]>([]);
   const [fabricTypes, setFabricTypes] = useState<FabricType[]>([]);
   const [bottomBars, setBottomBars] = useState<BottomBar[]>([]);
@@ -173,8 +206,8 @@ export default function App() {
   };
 
   return (
-    <SafeAreaView style={styles.safe}>
-      <ExpoStatusBar style="dark" />
+    <SafeAreaView style={styles.safe} testID="app-root">
+      <ExpoStatusBar style={resolvedTheme === 'dark' ? 'light' : 'dark'} />
       <ScrollView contentContainerStyle={styles.scroll}>
         <View style={styles.header}>
           <Image
@@ -185,6 +218,14 @@ export default function App() {
           <Text style={styles.heading}>
             Blind Roller Diameter & Weight Calculator
           </Text>
+          <TouchableOpacity
+            accessibilityLabel="Appearance settings"
+            accessibilityRole="button"
+            style={styles.settingsButton}
+            onPress={openAppearance}
+          >
+            <Text style={styles.settingsIcon}>⚙</Text>
+          </TouchableOpacity>
         </View>
 
         <ScrollablePicker
@@ -322,14 +363,29 @@ export default function App() {
         onRemoveAll={handleRemoveAllBottomBars}
         removeAllLabel="Remove all user-defined bottom bars"
       />
+      <AppearanceModal
+        visible={appearanceVisible}
+        preference={preference}
+        error={saveError}
+        onCancel={closeAppearance}
+        onSelect={selectAppearance}
+      />
     </SafeAreaView>
   );
 }
 
-const styles = StyleSheet.create({
+export default function App() {
+  return (
+    <ThemeProvider>
+      <CalculatorApp />
+    </ThemeProvider>
+  );
+}
+
+const createStyles = (colors: ThemeColors) => StyleSheet.create({
   safe: {
     flex: 1,
-    backgroundColor: '#eef2f5',
+    backgroundColor: colors.background,
     paddingTop: Platform.OS === 'android' ? StatusBar.currentHeight : 0,
   },
   scroll: {
@@ -351,6 +407,22 @@ const styles = StyleSheet.create({
     fontSize: 24,
     fontWeight: '700',
     textAlign: 'center',
+    color: colors.text,
+  },
+  settingsButton: {
+    width: 44,
+    height: 44,
+    borderRadius: 22,
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: colors.surface,
+    borderWidth: 1,
+    borderColor: colors.border,
+  },
+  settingsIcon: {
+    color: colors.primary,
+    fontSize: 22,
+    lineHeight: 24,
   },
   inputRow: {
     flexDirection: 'row',
@@ -358,13 +430,13 @@ const styles = StyleSheet.create({
   },
   results: {
     marginVertical: 8,
-    backgroundColor: '#fff',
+    backgroundColor: colors.surface,
     borderRadius: 12,
     borderWidth: 1,
-    borderColor: '#d0d5da',
+    borderColor: colors.border,
     paddingHorizontal: 14,
     paddingVertical: 6,
-    shadowColor: '#000',
+    shadowColor: colors.shadow,
     shadowOpacity: 0.06,
     shadowRadius: 4,
     shadowOffset: { width: 0, height: 2 },
@@ -379,31 +451,32 @@ const styles = StyleSheet.create({
   resultLabel: {
     fontSize: 15,
     fontWeight: '600',
-    color: '#55606a',
+    color: colors.textMuted,
   },
   resultValue: {
     fontSize: 17,
     fontWeight: '700',
-    color: '#1a1d21',
+    color: colors.text,
     textAlign: 'right',
   },
   resultSub: {
     fontSize: 13,
     fontWeight: '500',
-    color: '#8a939c',
+    color: colors.textSubtle,
   },
   divider: {
     height: 1,
-    backgroundColor: '#eceff2',
+    backgroundColor: colors.divider,
   },
   note: {
     marginTop: 10,
     marginBottom: 4,
     fontSize: 12,
     textAlign: 'center',
+    color: colors.text,
   },
   noteRed: {
-    color: '#d11',
+    color: colors.danger,
     fontWeight: '700',
   },
   footer: {
@@ -415,12 +488,13 @@ const styles = StyleSheet.create({
   link: {
     fontSize: 15,
     fontWeight: '700',
-    color: '#007AFF',
+    color: colors.primary,
     marginRight: 30,
   },
   contact: {
     fontSize: 15,
     fontWeight: '700',
     marginLeft: 30,
+    color: colors.text,
   },
 });
