@@ -1,9 +1,20 @@
 import { fireEvent, render, waitFor } from '@testing-library/react-native';
+import { StatusBar as ExpoStatusBar } from 'expo-status-bar';
 import App from '../App';
 import * as storage from '../src/storage';
+import * as themeStorage from '../src/theme/themeStorage';
 import fabrics from '../src/data/fabricTypes.json';
 import tubes from '../src/data/tubes.json';
 import bottomBars from '../src/data/bottomBars.json';
+
+jest.mock('expo-status-bar', () => ({
+  StatusBar: jest.fn(() => null),
+}));
+
+jest.mock('../src/theme/themeStorage', () => ({
+  loadThemePreference: jest.fn(),
+  saveThemePreference: jest.fn(),
+}));
 
 jest.mock('../src/storage', () => ({
   loadFabricTypes: jest.fn(),
@@ -19,6 +30,8 @@ jest.mock('../src/storage', () => ({
 
 beforeEach(() => {
   jest.clearAllMocks();
+  jest.mocked(themeStorage.loadThemePreference).mockResolvedValue('system');
+  jest.mocked(themeStorage.saveThemePreference).mockResolvedValue(true);
   jest.mocked(storage.loadFabricTypes).mockResolvedValue(fabrics);
   jest.mocked(storage.loadTubes).mockResolvedValue(tubes);
   jest.mocked(storage.loadBottomBars).mockResolvedValue(bottomBars);
@@ -53,5 +66,30 @@ describe('<App />', () => {
     await fireEvent.changeText(screen.getByTestId('blind-width-input'), '0');
     expect(screen.getByText('Enter a number greater than 0.')).toBeTruthy();
     expect(screen.getByTestId('total-weight-result')).toHaveTextContent('—');
+  });
+  test('opens Appearance settings from the accessible gear', async () => {
+    const view = await render(<App />);
+    await fireEvent.press(view.getByLabelText('Appearance settings'));
+    expect(await view.findByText('Appearance')).toBeTruthy();
+    expect(view.getByLabelText('System appearance').props.accessibilityState.selected).toBe(true);
+  });
+
+  test('applies and persists a dark override', async () => {
+    const view = await render(<App />);
+    await fireEvent.press(view.getByLabelText('Appearance settings'));
+    await fireEvent.press(await view.findByLabelText('Dark appearance'));
+    await waitFor(() => expect(themeStorage.saveThemePreference).toHaveBeenCalledWith('dark'));
+    await waitFor(() => expect(view.queryByText('Appearance')).toBeNull());
+    expect(jest.mocked(ExpoStatusBar).mock.calls.at(-1)?.[0].style).toBe('light');
+    expect(view.getByTestId('app-root')).toHaveStyle({ backgroundColor: '#101418' });
+  });
+
+  test('keeps settings open when preference persistence fails', async () => {
+    jest.mocked(themeStorage.saveThemePreference).mockResolvedValue(false);
+    const view = await render(<App />);
+    await fireEvent.press(view.getByLabelText('Appearance settings'));
+    await fireEvent.press(await view.findByLabelText('Dark appearance'));
+    expect(await view.findByText('Could not save appearance preference.')).toBeTruthy();
+    expect(view.getByText('Appearance')).toBeTruthy();
   });
 });
