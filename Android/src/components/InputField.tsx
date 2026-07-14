@@ -1,18 +1,28 @@
-// Labelled numeric text input — port of InputFieldSection.
+// Labelled numeric text input.
 
 import React, { useMemo } from 'react';
-import { View, Text, TextInput, StyleSheet } from 'react-native';
+import { StyleSheet, Text, TextInput, View } from 'react-native';
+
 import { ThemeColors, useTheme } from '../theme/theme';
+import { font, MIN_TOUCH, radius, space } from '../theme/tokens';
 
 interface Props {
   title: string;
   value: string;
   onChangeText: (value: string) => void;
+  placeholder?: string;
   error?: string;
   testID?: string;
 }
 
-export default function InputField({ title, value, onChangeText, error, testID }: Props) {
+export default function InputField({
+  title,
+  value,
+  onChangeText,
+  placeholder,
+  error,
+  testID,
+}: Props) {
   const { colors } = useTheme();
   const styles = useMemo(() => createStyles(colors), [colors]);
 
@@ -23,7 +33,7 @@ export default function InputField({ title, value, onChangeText, error, testID }
         style={styles.input}
         value={value}
         onChangeText={onChangeText}
-        placeholder={title}
+        placeholder={placeholder ?? title}
         placeholderTextColor={colors.textSubtle}
         selectionColor={colors.primary}
         keyboardType="decimal-pad"
@@ -39,24 +49,25 @@ const createStyles = (colors: ThemeColors) => StyleSheet.create({
     flex: 1,
   },
   title: {
-    color: colors.text,
-    fontSize: 17,
-    fontWeight: '600',
-    marginBottom: 5,
+    color: colors.textMuted,
+    fontSize: font.label,
+    fontWeight: '500',
+    marginBottom: space.xs,
   },
   input: {
+    minHeight: MIN_TOUCH,
     backgroundColor: colors.surface,
     color: colors.text,
-    borderRadius: 8,
+    borderRadius: radius.md,
     borderWidth: 1,
     borderColor: colors.border,
-    paddingHorizontal: 10,
-    paddingVertical: 8,
-    fontSize: 16,
+    paddingHorizontal: space.md,
+    fontSize: font.title,
+    fontWeight: '600',
   },
   error: {
     color: colors.danger,
-    fontSize: 12,
-    marginTop: 3,
+    fontSize: font.footnote,
+    marginTop: space.xs,
   },
 });
