@@ -50,6 +50,7 @@ src/
     CustomItemsSheet.tsx    manage everything the user has added
     DimensionsCard.tsx      width x height with the in/mm toggle
     SegmentedControl.tsx
+    GearIcon.tsx            flat gear drawn from Views
     Section.tsx             captioned card group
     Row.tsx                 one line in a card group
     InputField.tsx
