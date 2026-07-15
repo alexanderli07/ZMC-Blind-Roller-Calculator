@@ -1,7 +1,7 @@
 import React from 'react';
 import { render, screen, waitFor } from '@testing-library/react-native';
 import InputField from '../src/components/InputField';
-import ScrollablePicker from '../src/components/ScrollablePicker';
+import SelectSheet from '../src/components/SelectSheet';
 import AddItemModal from '../src/components/AddItemModal';
 import { darkPalette, ThemeProvider } from '../src/theme/theme';
 import * as themeStorage from '../src/theme/themeStorage';
@@ -36,24 +36,33 @@ test('themes numeric inputs in dark mode', async () => {
   );
 });
 
-test('themes picker surface in dark mode', async () => {
+test('themes the select sheet in dark mode', async () => {
   await render(
     <ThemeProvider>
-      <ScrollablePicker
-        title="Select Tube"
-        options={['1TU']}
-        selection=""
+      <SelectSheet
+        visible
+        title="Tube"
+        searchPlaceholder="Search tubes"
+        items={[{ name: '1TU', detail: 'Ø 1.25 in · 0.192 lb/ft', custom: false }]}
+        selected=""
         onSelect={jest.fn()}
+        onAdd={jest.fn()}
+        onRemove={jest.fn()}
+        onClose={jest.fn()}
+        testID="tube-sheet"
       />
     </ThemeProvider>
   );
 
   await waitFor(() =>
-    expect(screen.getByTestId('select-tube-picker-wrapper')).toHaveStyle({
-      backgroundColor: darkPalette.surface,
-      borderColor: darkPalette.border,
+    expect(screen.getByTestId('tube-sheet')).toHaveStyle({
+      backgroundColor: darkPalette.background,
     })
   );
+  expect(screen.getByPlaceholderText('Search tubes').props.placeholderTextColor).toBe(
+    darkPalette.textSubtle
+  );
+  expect(screen.getByText('Ø 1.25 in · 0.192 lb/ft')).toBeTruthy();
 });
 
 test('themes add-item modal surface in dark mode', async () => {

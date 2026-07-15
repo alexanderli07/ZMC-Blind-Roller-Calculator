@@ -9,9 +9,9 @@ const IN4_PER_MM4 = MM_PER_IN ** 4; // 416231.4256
 const TUBE_ELASTICITY = 10007760;
 
 // 1 oz/yd² = 33.906 g/m²
-const GM2_PER_OZYD2 = 33.906;
+export const GM2_PER_OZYD2 = 33.906;
 // 1 lb/ft = 1488.16 g/m
-const GM_PER_LBFT = 1488.16;
+export const GM_PER_LBFT = 1488.16;
 // lb/ft per mm² of aluminium cross-section (calibrated to the spreadsheet:
 // D=1.5in, t=0.055in -> 0.29198 lb/ft).
 const LBFT_PER_MM2 = 0.00181265;
