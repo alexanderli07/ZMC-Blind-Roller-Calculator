@@ -39,10 +39,15 @@ export default function InputField({
         keyboardType="decimal-pad"
         testID={testID}
       />
-      {error && <Text style={styles.error}>{error}</Text>}
+      {/* Always present so an appearing error cannot resize the card. */}
+      <Text style={styles.error} numberOfLines={1}>
+        {error ?? ' '}
+      </Text>
     </View>
   );
 }
+
+const ERROR_LINE = 15;
 
 const createStyles = (colors: ThemeColors) => StyleSheet.create({
   container: {
@@ -68,6 +73,8 @@ const createStyles = (colors: ThemeColors) => StyleSheet.create({
   error: {
     color: colors.danger,
     fontSize: font.footnote,
+    height: ERROR_LINE,
+    lineHeight: ERROR_LINE,
     marginTop: space.xs,
   },
 });

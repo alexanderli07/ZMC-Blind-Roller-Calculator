@@ -96,9 +96,7 @@ describe('<App />', () => {
 
   test('prompts for the missing inputs before anything is chosen', async () => {
     const screen = await render(<App />);
-    expect(
-      screen.getByText('Pick a tube, fabric, and bottom bar, then enter the blind size.')
-    ).toBeTruthy();
+    expect(screen.getByText('Pick a tube, fabric, bar, and size.')).toBeTruthy();
   });
 
   test('renders the known result after every input is complete', async () => {

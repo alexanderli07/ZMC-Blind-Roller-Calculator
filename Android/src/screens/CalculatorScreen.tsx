@@ -377,11 +377,8 @@ export default function CalculatorScreen() {
           <ResultCard
             label="Roller diameter"
             reading={diameter}
-            hint={
-              complete
-                ? null
-                : 'Pick a tube, fabric, and bottom bar, then enter the blind size.'
-            }
+            // Shares the secondary-unit line, so it costs no extra height.
+            hint={complete ? null : 'Pick a tube, fabric, bar, and size.'}
             testID="roller-diameter-result"
           />
         </View>
