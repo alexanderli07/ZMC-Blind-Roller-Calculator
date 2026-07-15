@@ -4,7 +4,6 @@
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import {
   Alert,
-  Linking,
   Modal,
   Platform,
   SafeAreaView,
@@ -342,15 +341,6 @@ export default function SettingsScreen({ visible, onClose }: Props) {
 
           <Section title="Reset">
             <Row label="Reset settings" tone="danger" onPress={confirmResetSettings} />
-          </Section>
-
-          <Section title="ZMC">
-            <Row
-              label="zmc.ca"
-              divider
-              onPress={() => void Linking.openURL('https://www.zmc.ca')}
-            />
-            <Row label="contact@zmc.ca" onPress={() => void Linking.openURL('mailto:contact@zmc.ca')} />
           </Section>
 
           {saveError && <Text style={styles.error}>{saveError}</Text>}
