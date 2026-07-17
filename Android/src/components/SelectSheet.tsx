@@ -1,14 +1,12 @@
 // Full-screen searchable picker, replacing the native dropdown. Twenty-eight
 // fabrics needed search, room for each entry's specs, and per-item delete.
+// Dismiss with the close button, the Android back button, or a swipe down on
+// the header.
 
 import React, { ReactNode, useEffect, useMemo, useState } from 'react';
 import {
   Alert,
   FlatList,
-  Modal,
-  Platform,
-  SafeAreaView,
-  StatusBar,
   StyleSheet,
   Text,
   TextInput,
@@ -16,8 +14,9 @@ import {
   View,
 } from 'react-native';
 
+import DragSheet from './DragSheet';
 import { ThemeColors, useTheme } from '../theme/theme';
-import { font, MIN_TOUCH, radius, space } from '../theme/tokens';
+import { font, ICON_GLYPH, MIN_TOUCH, radius, space } from '../theme/tokens';
 
 export interface SheetItem {
   name: string;
@@ -79,8 +78,11 @@ export default function SelectSheet({
   };
 
   return (
-    <Modal visible={visible} animationType="slide" onRequestClose={onClose}>
-      <SafeAreaView style={styles.screen} testID={testID}>
+    <DragSheet
+      visible={visible}
+      onClose={onClose}
+      testID={testID}
+      header={
         <View style={styles.header}>
           <TouchableOpacity
             accessibilityRole="button"
@@ -102,84 +104,76 @@ export default function SelectSheet({
             <Text style={styles.addLabel}>Add</Text>
           </TouchableOpacity>
         </View>
-
-        <View style={styles.searchWrapper}>
-          <TextInput
-            style={styles.search}
-            value={query}
-            onChangeText={setQuery}
-            placeholder={searchPlaceholder}
-            placeholderTextColor={colors.textSubtle}
-            selectionColor={colors.primary}
-            autoCorrect={false}
-            autoCapitalize="none"
-            testID={testID ? `${testID}-search` : undefined}
-          />
-        </View>
-
-        <FlatList
-          data={filtered}
-          keyExtractor={(item) => item.name}
-          keyboardShouldPersistTaps="handled"
-          contentContainerStyle={styles.list}
-          ItemSeparatorComponent={() => <View style={styles.separator} />}
-          ListEmptyComponent={
-            <Text style={styles.empty}>{`Nothing matches “${query.trim()}”.`}</Text>
-          }
-          renderItem={({ item }) => {
-            const isSelected = item.name === selected;
-            return (
-              <View style={styles.itemRow}>
-                <TouchableOpacity
-                  accessibilityRole="radio"
-                  accessibilityLabel={item.name}
-                  accessibilityState={{ selected: isSelected }}
-                  style={styles.itemMain}
-                  onPress={() => onSelect(item.name)}
-                >
-                  <View style={styles.itemText}>
-                    <Text style={[styles.itemName, isSelected && styles.itemNameSelected]}>
-                      {item.name}
-                    </Text>
-                    <Text style={styles.itemDetail}>{item.detail}</Text>
-                  </View>
-                  {item.custom && <Text style={styles.tag}>Custom</Text>}
-                  <Text style={styles.check}>{isSelected ? '✓' : ''}</Text>
-                </TouchableOpacity>
-                {item.custom && (
-                  <TouchableOpacity
-                    accessibilityRole="button"
-                    accessibilityLabel={`Remove ${item.name}`}
-                    style={styles.removeButton}
-                    onPress={() => confirmRemove(item)}
-                  >
-                    <Text style={styles.removeIcon}>✕</Text>
-                  </TouchableOpacity>
-                )}
-              </View>
-            );
-          }}
+      }
+    >
+      <View style={styles.searchWrapper}>
+        <TextInput
+          style={styles.search}
+          value={query}
+          onChangeText={setQuery}
+          placeholder={searchPlaceholder}
+          placeholderTextColor={colors.textSubtle}
+          selectionColor={colors.primary}
+          autoCorrect={false}
+          autoCapitalize="none"
+          testID={testID ? `${testID}-search` : undefined}
         />
-        {children}
-      </SafeAreaView>
-    </Modal>
+      </View>
+
+      <FlatList
+        data={filtered}
+        keyExtractor={(item) => item.name}
+        keyboardShouldPersistTaps="handled"
+        contentContainerStyle={styles.list}
+        ItemSeparatorComponent={() => <View style={styles.separator} />}
+        ListEmptyComponent={
+          <Text style={styles.empty}>{`Nothing matches “${query.trim()}”.`}</Text>
+        }
+        renderItem={({ item }) => {
+          const isSelected = item.name === selected;
+          return (
+            <View style={styles.itemRow}>
+              <TouchableOpacity
+                accessibilityRole="radio"
+                accessibilityLabel={item.name}
+                accessibilityState={{ selected: isSelected }}
+                style={styles.itemMain}
+                onPress={() => onSelect(item.name)}
+              >
+                <View style={styles.itemText}>
+                  <Text style={[styles.itemName, isSelected && styles.itemNameSelected]}>
+                    {item.name}
+                  </Text>
+                  <Text style={styles.itemDetail}>{item.detail}</Text>
+                </View>
+                {item.custom && <Text style={styles.tag}>Custom</Text>}
+                <Text style={styles.check}>{isSelected ? '✓' : ''}</Text>
+              </TouchableOpacity>
+              {item.custom && (
+                <TouchableOpacity
+                  accessibilityRole="button"
+                  accessibilityLabel={`Remove ${item.name}`}
+                  style={styles.removeButton}
+                  onPress={() => confirmRemove(item)}
+                >
+                  <Text style={styles.removeIcon}>✕</Text>
+                </TouchableOpacity>
+              )}
+            </View>
+          );
+        }}
+      />
+      {children}
+    </DragSheet>
   );
 }
 
 const createStyles = (colors: ThemeColors) => StyleSheet.create({
-  screen: {
-    flex: 1,
-    backgroundColor: colors.background,
-    paddingTop: Platform.OS === 'android' ? StatusBar.currentHeight : 0,
-  },
   header: {
     flexDirection: 'row',
     alignItems: 'center',
     paddingHorizontal: space.sm,
-    paddingVertical: space.sm,
-    borderBottomWidth: 1,
-    borderBottomColor: colors.border,
-    backgroundColor: colors.surface,
+    paddingBottom: space.sm,
   },
   iconButton: {
     width: MIN_TOUCH,
@@ -188,7 +182,8 @@ const createStyles = (colors: ThemeColors) => StyleSheet.create({
     justifyContent: 'center',
   },
   icon: {
-    fontSize: font.title,
+    fontSize: ICON_GLYPH,
+    fontWeight: '700',
     color: colors.textMuted,
   },
   title: {
