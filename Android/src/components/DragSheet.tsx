@@ -1,26 +1,28 @@
-// Full-screen sheet that slides up and can be swiped back down, as an
-// alternative to the close button. Shared by every bottom-up surface.
+// Full-screen sheet that slides up over a dimmed screen and can be swiped back
+// down, as an alternative to the close button. Shared by every bottom-up
+// surface.
 //
 // Built on core PanResponder + Animated: react-native-gesture-handler is not a
-// dependency and cannot be added.
+// dependency and cannot be added. Four things this has to get right:
 //
-// The gesture lives on a dedicated grab strip -- the band holding the pill at
-// the very top -- and nothing else. That strip has no buttons or lists beneath
-// it, so the responder can be claimed outright on touch-down instead of being
-// won from a child after a movement threshold. Threshold-and-capture
-// negotiation against the header buttons and the settings ScrollView is what
-// failed before; there is nothing here to negotiate with.
-//
-// Two other things this has to get right:
+//  - The gesture lives on a dedicated grab strip -- the band holding the pill
+//    at the top -- and nothing else. That strip has no buttons or lists beneath
+//    it, so the responder is claimed outright on touch-down. Winning it from
+//    the header buttons and the settings ScrollView after a movement threshold
+//    is what failed before; there is nothing here to negotiate with.
 //  - The responder is created exactly once. Call sites pass inline arrows for
 //    onClose, so rebuilding it per render would orphan an in-flight drag.
 //  - The JS driver, not the native one. translateY is pushed with setValue on
 //    every move, and a natively-attached value ignores those.
+//  - The Modal is transparent and animates nothing itself. Its own slide would
+//    drag the backdrop up with the sheet, so entrance and exit are animated
+//    here instead, and the sheet stays mounted until the exit finishes.
 
-import React, { ReactNode, useEffect, useMemo, useRef } from 'react';
+import React, { ReactNode, useEffect, useMemo, useRef, useState } from 'react';
 import {
   Animated,
   Dimensions,
+  Easing,
   Modal,
   PanResponder,
   Platform,
@@ -39,6 +41,12 @@ const DISMISS_VELOCITY = 0.7;
 // Tall enough to be an easy target for a thumb reaching the top of the screen.
 const STRIP_HEIGHT = 34;
 
+const OPEN_DURATION = 260;
+const CLOSE_DURATION = 200;
+const FLING_DURATION = 160;
+
+const offscreen = () => Dimensions.get('window').height;
+
 interface Props {
   visible: boolean;
   onClose: () => void;
@@ -51,7 +59,12 @@ interface Props {
 export default function DragSheet({ visible, onClose, header, children, testID }: Props) {
   const { colors } = useTheme();
   const styles = useMemo(() => createStyles(colors), [colors]);
-  const translateY = useRef(new Animated.Value(0)).current;
+  const translateY = useRef(new Animated.Value(offscreen())).current;
+
+  // The sheet has to outlive visible=false long enough to animate out, so the
+  // Modal follows this rather than the prop.
+  const [mounted, setMounted] = useState(false);
+  const mountedRef = useRef(false);
 
   // Read through a ref so the responder below never has to be rebuilt.
   const onCloseRef = useRef(onClose);
@@ -59,11 +72,46 @@ export default function DragSheet({ visible, onClose, header, children, testID }
     onCloseRef.current = onClose;
   }, [onClose]);
 
-  // A sheet dismissed by swipe is left translated off-screen; put it back
-  // before it is shown again.
   useEffect(() => {
-    if (visible) translateY.setValue(0);
+    if (visible) {
+      mountedRef.current = true;
+      setMounted(true);
+      translateY.setValue(offscreen());
+      Animated.timing(translateY, {
+        toValue: 0,
+        duration: OPEN_DURATION,
+        easing: Easing.out(Easing.cubic),
+        useNativeDriver: false,
+      }).start();
+      return;
+    }
+
+    if (!mountedRef.current) return;
+    Animated.timing(translateY, {
+      toValue: offscreen(),
+      duration: CLOSE_DURATION,
+      easing: Easing.in(Easing.cubic),
+      useNativeDriver: false,
+    }).start(({ finished }) => {
+      // Reopening interrupts this; unmounting then would kill the new sheet.
+      if (!finished) return;
+      mountedRef.current = false;
+      setMounted(false);
+    });
   }, [visible, translateY]);
+
+  // Fades out as the sheet is dragged clear, so the screen behind it comes up
+  // to full brightness exactly as it is revealed. Memoised so each render does
+  // not graft a fresh node onto the animation.
+  const backdropOpacity = useMemo(
+    () =>
+      translateY.interpolate({
+        inputRange: [0, offscreen()],
+        outputRange: [1, 0],
+        extrapolate: 'clamp',
+      }),
+    [translateY]
+  );
 
   const responderRef = useRef<ReturnType<typeof PanResponder.create> | null>(null);
   if (responderRef.current === null) {
@@ -90,10 +138,16 @@ export default function DragSheet({ visible, onClose, header, children, testID }
       onPanResponderRelease: (_event, gesture) => {
         if (gesture.dy > DISMISS_DISTANCE || gesture.vy > DISMISS_VELOCITY) {
           Animated.timing(translateY, {
-            toValue: Dimensions.get('window').height,
-            duration: 160,
+            toValue: offscreen(),
+            duration: FLING_DURATION,
+            easing: Easing.out(Easing.quad),
             useNativeDriver: false,
-          }).start(() => onCloseRef.current());
+          }).start(({ finished }) => {
+            if (!finished) return;
+            mountedRef.current = false;
+            setMounted(false);
+            onCloseRef.current();
+          });
           return;
         }
         settle();
@@ -103,40 +157,48 @@ export default function DragSheet({ visible, onClose, header, children, testID }
   }
 
   return (
-    // transparent, so dragging the sheet down uncovers the live screen behind
-    // it rather than the modal's own blank surface. The sheet paints its own
-    // full-bleed background, so it still looks opaque when it is at rest.
-    <Modal
-      visible={visible}
-      transparent
-      animationType="slide"
-      onRequestClose={onClose}
-    >
-      <Animated.View
-        style={[styles.screen, { transform: [{ translateY }] }]}
-        testID={testID}
-      >
-        <SafeAreaView style={styles.safe}>
-          <View style={styles.chrome}>
-            <View
-              accessibilityRole="adjustable"
-              accessibilityLabel="Drag down to close"
-              style={styles.grabStrip}
-              testID={testID ? `${testID}-grabber` : undefined}
-              {...responderRef.current.panHandlers}
-            >
-              <View style={styles.grabber} />
+    // Transparent and unanimated: the sheet uncovers the live screen behind it
+    // as it is dragged, and Modal's own slide would carry the backdrop along
+    // with it.
+    <Modal visible={mounted} transparent animationType="none" onRequestClose={onClose}>
+      <View style={styles.fill}>
+        <Animated.View
+          pointerEvents="none"
+          style={[styles.backdrop, { opacity: backdropOpacity }]}
+        />
+        <Animated.View
+          style={[styles.screen, { transform: [{ translateY }] }]}
+          testID={testID}
+        >
+          <SafeAreaView style={styles.safe}>
+            <View style={styles.chrome}>
+              <View
+                accessibilityRole="adjustable"
+                accessibilityLabel="Drag down to close"
+                style={styles.grabStrip}
+                testID={testID ? `${testID}-grabber` : undefined}
+                {...responderRef.current.panHandlers}
+              >
+                <View style={styles.grabber} />
+              </View>
+              {header}
             </View>
-            {header}
-          </View>
-          {children}
-        </SafeAreaView>
-      </Animated.View>
+            {children}
+          </SafeAreaView>
+        </Animated.View>
+      </View>
     </Modal>
   );
 }
 
 const createStyles = (colors: ThemeColors) => StyleSheet.create({
+  fill: {
+    flex: 1,
+  },
+  backdrop: {
+    ...StyleSheet.absoluteFillObject,
+    backgroundColor: colors.overlay,
+  },
   screen: {
     flex: 1,
     backgroundColor: colors.background,
