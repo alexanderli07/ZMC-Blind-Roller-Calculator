@@ -62,12 +62,13 @@ async function seedSettings(overrides: Record<string, unknown> = {}) {
 async function chooseEverything(screen: ReturnType<typeof render>) {
   await waitFor(() => expect(storage.loadBottomBars).toHaveBeenCalled());
 
+  // The sheets mount a tick after visible flips, so these have to be awaited.
   await fireEvent.press(screen.getByTestId('tube-select-row'));
-  await fireEvent.press(screen.getByLabelText('1TU'));
+  await fireEvent.press(await screen.findByLabelText('1TU'));
   await fireEvent.press(screen.getByTestId('fabric-select-row'));
-  await fireEvent.press(screen.getByLabelText('deluxe'));
+  await fireEvent.press(await screen.findByLabelText('deluxe'));
   await fireEvent.press(screen.getByTestId('bottom-bar-select-row'));
-  await fireEvent.press(screen.getByLabelText('slim bottom bar w/fab insert'));
+  await fireEvent.press(await screen.findByLabelText('slim bottom bar w/fab insert'));
   await fireEvent.changeText(screen.getByTestId('blind-width-input'), '72');
   await fireEvent.changeText(screen.getByTestId('blind-height-input'), '96');
 }
