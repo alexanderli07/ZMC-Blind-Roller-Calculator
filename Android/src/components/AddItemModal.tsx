@@ -50,11 +50,12 @@ export default function AddItemModal<T,>({
   const [values, setValues] = useState<Record<string, string>>(() => emptyValuesFor(fields));
   const [error, setError] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
+  const inFlight = useRef(false);
   const wasVisible = useRef(false);
 
-  // Reset the form each time the modal is opened.
+  // Reset only on an idle open; reopening cannot supersede pending work.
   useEffect(() => {
-    if (visible && !wasVisible.current) {
+    if (visible && !wasVisible.current && !inFlight.current) {
       setValues(emptyValuesFor(fields));
       setError(null);
       setSubmitting(false);
@@ -65,8 +66,13 @@ export default function AddItemModal<T,>({
   const setField = (key: string, value: string) =>
     setValues((prev) => ({ ...prev, [key]: value }));
 
+  const handleCancel = () => {
+    if (inFlight.current) return;
+    onCancel();
+  };
+
   const handleConfirm = async () => {
-    if (submitting) return;
+    if (inFlight.current) return;
 
     const result = validate(values);
     if (!result.ok) {
@@ -75,26 +81,30 @@ export default function AddItemModal<T,>({
     }
 
     setError(null);
+    inFlight.current = true;
     setSubmitting(true);
     try {
       await onSubmit(result.value);
     } catch {
       setError('Could not save the item. Please try again.');
     } finally {
+      inFlight.current = false;
       setSubmitting(false);
     }
   };
 
   const handleRemoveAll = async () => {
-    if (!onRemoveAll || submitting) return;
+    if (!onRemoveAll || inFlight.current) return;
 
     setError(null);
+    inFlight.current = true;
     setSubmitting(true);
     try {
       await onRemoveAll();
     } catch {
       setError('Could not remove the items. Please try again.');
     } finally {
+      inFlight.current = false;
       setSubmitting(false);
     }
   };
@@ -104,7 +114,7 @@ export default function AddItemModal<T,>({
       visible={visible}
       animationType="slide"
       transparent
-      onRequestClose={onCancel}
+      onRequestClose={handleCancel}
     >
       <View style={styles.backdrop}>
         <View style={styles.sheet}>
@@ -129,8 +139,13 @@ export default function AddItemModal<T,>({
 
           <View style={styles.buttonRow}>
             <TouchableOpacity
-              style={[styles.button, styles.cancelButton]}
-              onPress={onCancel}
+              style={[
+                styles.button,
+                styles.cancelButton,
+                submitting && styles.disabledButton,
+              ]}
+              disabled={submitting}
+              onPress={handleCancel}
             >
               <Text style={styles.cancelText}>Cancel</Text>
             </TouchableOpacity>
