@@ -9,10 +9,10 @@ export interface FabricType {
 export interface Tube {
   name: string;
   diameter: number; // mm
-  thickness?: number | null; // mm (optional in the Swift model)
-  moment: number; // cm^4
-  elasticity: number; // kg/cm² (psi-equivalent constant in the data)
-  weight: number; // kg/m
+  thickness?: number | null; // mm
+  moment: number; // in^4
+  elasticity: number; // psi
+  weight: number; // lb/ft
 }
 
 export interface BottomBar {
