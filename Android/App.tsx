@@ -35,6 +35,14 @@ import {
   bottomBarFromInputs,
 } from './src/conversions';
 import {
+  BottomBarInput,
+  FabricInput,
+  TubeInput,
+  validateBottomBarInput,
+  validateFabricInput,
+  validateTubeInput,
+} from './src/validation';
+import {
   CalcInputs,
   totalWeightKg,
   totalWeightLb,
@@ -119,25 +127,25 @@ export default function App() {
     { key: 'weightLbFt', label: 'Weight (lb/ft)', numeric: true },
   ];
 
-  const handleAddFabric = async (v: Record<string, string>) => {
+  const handleAddFabric = async (value: FabricInput) => {
     const updated = await addFabricType(
-      fabricFromInputs(v.name, Number(v.weight), Number(v.thickness))
+      fabricFromInputs(value.name, value.weight, value.thickness)
     );
     setFabricTypes(updated);
     setActiveModal(null);
   };
 
-  const handleAddTube = async (v: Record<string, string>) => {
+  const handleAddTube = async (value: TubeInput) => {
     const updated = await addTube(
-      tubeFromInputs(v.name, Number(v.diameter), Number(v.thickness))
+      tubeFromInputs(value.name, value.diameter, value.thickness)
     );
     setTubes(updated);
     setActiveModal(null);
   };
 
-  const handleAddBottomBar = async (v: Record<string, string>) => {
+  const handleAddBottomBar = async (value: BottomBarInput) => {
     const updated = await addBottomBar(
-      bottomBarFromInputs(v.name, Number(v.weightLbFt))
+      bottomBarFromInputs(value.name, value.weightLbFt)
     );
     setBottomBars(updated);
     setActiveModal(null);
@@ -273,6 +281,9 @@ export default function App() {
         title="Add Fabric Type"
         fields={fabricFields}
         onCancel={() => setActiveModal(null)}
+        validate={(values) =>
+          validateFabricInput(values, fabricTypes.map((item) => item.name))
+        }
         onSubmit={handleAddFabric}
         onRemoveAll={handleRemoveAllFabrics}
         removeAllLabel="Remove all user-defined fabric types"
@@ -282,6 +293,9 @@ export default function App() {
         title="Add Tube"
         fields={tubeFields}
         onCancel={() => setActiveModal(null)}
+        validate={(values) =>
+          validateTubeInput(values, tubes.map((item) => item.name))
+        }
         onSubmit={handleAddTube}
         onRemoveAll={handleRemoveAllTubes}
         removeAllLabel="Remove all user-defined tubes"
@@ -291,6 +305,9 @@ export default function App() {
         title="Add Bottom Bar"
         fields={bottomBarFields}
         onCancel={() => setActiveModal(null)}
+        validate={(values) =>
+          validateBottomBarInput(values, bottomBars.map((item) => item.name))
+        }
         onSubmit={handleAddBottomBar}
         onRemoveAll={handleRemoveAllBottomBars}
         removeAllLabel="Remove all user-defined bottom bars"
