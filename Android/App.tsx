@@ -212,25 +212,43 @@ export default function App() {
         <View style={styles.results}>
           <View style={styles.resultRow}>
             <Text style={styles.resultLabel}>Total Weight</Text>
-            <Text style={styles.resultValue}>
-              {weightLb.toFixed(3)} lb{' '}
-              <Text style={styles.resultSub}>({weightKg.toFixed(3)} kg)</Text>
+            <Text testID="total-weight-result" style={styles.resultValue}>
+              {weightLb === null || weightKg === null ? (
+                '—'
+              ) : (
+                <>
+                  {weightLb.toFixed(3)} lb{' '}
+                  <Text style={styles.resultSub}>({weightKg.toFixed(3)} kg)</Text>
+                </>
+              )}
             </Text>
           </View>
           <View style={styles.divider} />
           <View style={styles.resultRow}>
             <Text style={styles.resultLabel}>Roller Diameter</Text>
-            <Text style={styles.resultValue}>
-              {diameterIn.toFixed(3)} in{' '}
-              <Text style={styles.resultSub}>({diameterMm.toFixed(3)} mm)</Text>
+            <Text testID="roller-diameter-result" style={styles.resultValue}>
+              {diameterIn === null || diameterMm === null ? (
+                '—'
+              ) : (
+                <>
+                  {diameterIn.toFixed(3)} in{' '}
+                  <Text style={styles.resultSub}>({diameterMm.toFixed(3)} mm)</Text>
+                </>
+              )}
             </Text>
           </View>
           <View style={styles.divider} />
           <View style={styles.resultRow}>
             <Text style={styles.resultLabel}>Tube Deflection</Text>
-            <Text style={styles.resultValue}>
-              {deflectionIn.toFixed(3)} in{' '}
-              <Text style={styles.resultSub}>({deflectionMm.toFixed(3)} mm)</Text>
+            <Text testID="tube-deflection-result" style={styles.resultValue}>
+              {deflectionIn === null || deflectionMm === null ? (
+                '—'
+              ) : (
+                <>
+                  {deflectionIn.toFixed(3)} in{' '}
+                  <Text style={styles.resultSub}>({deflectionMm.toFixed(3)} mm)</Text>
+                </>
+              )}
             </Text>
           </View>
 
