@@ -5,6 +5,26 @@ import fabrics from '../src/data/fabricTypes.json';
 import tubes from '../src/data/tubes.json';
 import bottomBars from '../src/data/bottomBars.json';
 
+jest.mock('../src/theme/themeStorage', () => ({
+  loadThemePreference: jest.fn(),
+  saveThemePreference: jest.fn(),
+}));
+
+jest.mock('../src/theme/theme', () => {
+  const actual = jest.requireActual('../src/theme/theme');
+  return {
+    ...actual,
+    useTheme: () => ({
+      preference: 'system',
+      resolvedTheme: 'light',
+      colors: actual.lightPalette,
+      saveError: null,
+      setPreference: jest.fn(),
+      clearSaveError: jest.fn(),
+    }),
+  };
+});
+
 jest.mock('../src/storage', () => ({
   loadFabricTypes: jest.fn(),
   loadTubes: jest.fn(),

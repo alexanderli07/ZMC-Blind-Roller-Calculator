@@ -1,7 +1,7 @@
 // Generic "add new item" modal — port of AddFabricTypeView / AddTubeView /
 // AddBottomBarView, driven by a list of field specs.
 
-import React, { useEffect, useRef, useState } from 'react';
+import React, { useEffect, useMemo, useRef, useState } from 'react';
 import {
   Modal,
   View,
@@ -12,6 +12,7 @@ import {
   ScrollView,
 } from 'react-native';
 import { ValidationResult } from '../validation';
+import { ThemeColors, useTheme } from '../theme/theme';
 
 export interface FieldSpec {
   key: string;
@@ -47,6 +48,8 @@ export default function AddItemModal<T,>({
   onRemoveAll,
   removeAllLabel,
 }: Props<T>) {
+  const { colors } = useTheme();
+  const styles = useMemo(() => createStyles(colors), [colors]);
   const [values, setValues] = useState<Record<string, string>>(() => emptyValuesFor(fields));
   const [error, setError] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
@@ -117,7 +120,7 @@ export default function AddItemModal<T,>({
       onRequestClose={handleCancel}
     >
       <View style={styles.backdrop}>
-        <View style={styles.sheet}>
+        <View style={styles.sheet} testID="add-item-sheet">
           <Text style={styles.title}>{title}</Text>
 
           <ScrollView>
@@ -130,6 +133,8 @@ export default function AddItemModal<T,>({
                   onChangeText={(text) => setField(field.key, text)}
                   keyboardType={field.numeric ? 'decimal-pad' : 'default'}
                   placeholder={field.label}
+                  placeholderTextColor={colors.textSubtle}
+                  selectionColor={colors.primary}
                 />
               </View>
             ))}
@@ -179,20 +184,21 @@ export default function AddItemModal<T,>({
   );
 }
 
-const styles = StyleSheet.create({
+const createStyles = (colors: ThemeColors) => StyleSheet.create({
   backdrop: {
     flex: 1,
-    backgroundColor: 'rgba(0,0,0,0.4)',
+    backgroundColor: colors.overlay,
     justifyContent: 'center',
     padding: 20,
   },
   sheet: {
-    backgroundColor: '#fff',
+    backgroundColor: colors.surface,
     borderRadius: 12,
     padding: 20,
     maxHeight: '85%',
   },
   title: {
+    color: colors.text,
     fontSize: 20,
     fontWeight: '700',
     marginBottom: 16,
@@ -202,13 +208,16 @@ const styles = StyleSheet.create({
     marginBottom: 12,
   },
   label: {
+    color: colors.text,
     fontSize: 15,
     fontWeight: '600',
     marginBottom: 4,
   },
   input: {
+    backgroundColor: colors.surface,
+    color: colors.text,
     borderWidth: 1,
-    borderColor: '#d0d5da',
+    borderColor: colors.border,
     borderRadius: 8,
     paddingHorizontal: 10,
     paddingVertical: 8,
@@ -225,11 +234,11 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   cancelButton: {
-    backgroundColor: '#e5e9ec',
+    backgroundColor: colors.surfaceSecondary,
     marginRight: 8,
   },
   saveButton: {
-    backgroundColor: '#007AFF',
+    backgroundColor: colors.primary,
     marginLeft: 8,
   },
   disabledButton: {
@@ -238,15 +247,15 @@ const styles = StyleSheet.create({
   cancelText: {
     fontSize: 16,
     fontWeight: '600',
-    color: '#333',
+    color: colors.text,
   },
   saveText: {
     fontSize: 16,
     fontWeight: '600',
-    color: '#fff',
+    color: colors.onPrimary,
   },
   errorText: {
-    color: '#c0392b',
+    color: colors.danger,
     fontSize: 14,
     marginTop: 4,
     textAlign: 'center',
@@ -256,13 +265,13 @@ const styles = StyleSheet.create({
     paddingVertical: 10,
     borderRadius: 8,
     borderWidth: 1,
-    borderColor: '#e3b1b1',
-    backgroundColor: '#fdf2f2',
+    borderColor: colors.dangerBorder,
+    backgroundColor: colors.dangerSurface,
     alignItems: 'center',
   },
   removeAllText: {
     fontSize: 14,
     fontWeight: '600',
-    color: '#c0392b',
+    color: colors.danger,
   },
 });
