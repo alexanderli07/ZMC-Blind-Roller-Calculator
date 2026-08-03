@@ -35,6 +35,14 @@ import {
   bottomBarFromInputs,
 } from './src/conversions';
 import {
+  BottomBarInput,
+  FabricInput,
+  TubeInput,
+  validateBottomBarInput,
+  validateFabricInput,
+  validateTubeInput,
+} from './src/validation';
+import {
   CalcInputs,
   totalWeightKg,
   totalWeightLb,
@@ -44,6 +52,7 @@ import {
   tubeDeflectionInch,
   MAX_DEFLECTION_IN,
   MAX_DEFLECTION_MM,
+  parsePositiveNumber,
 } from './src/calculations';
 import ScrollablePicker from './src/components/ScrollablePicker';
 import InputField from './src/components/InputField';
@@ -64,6 +73,11 @@ export default function App() {
   const [blindHeight, setBlindHeight] = useState('');
 
   const [activeModal, setActiveModal] = useState<ModalKind>(null);
+
+  const measurementError = (value: string) =>
+    value.trim() !== '' && parsePositiveNumber(value) === null
+      ? 'Enter a number greater than 0.'
+      : undefined;
 
   // Load data on mount (mirrors DataManager.init -> loadData).
   useEffect(() => {
@@ -119,25 +133,25 @@ export default function App() {
     { key: 'weightLbFt', label: 'Weight (lb/ft)', numeric: true },
   ];
 
-  const handleAddFabric = async (v: Record<string, string>) => {
+  const handleAddFabric = async (value: FabricInput) => {
     const updated = await addFabricType(
-      fabricFromInputs(v.name, Number(v.weight), Number(v.thickness))
+      fabricFromInputs(value.name, value.weight, value.thickness)
     );
     setFabricTypes(updated);
     setActiveModal(null);
   };
 
-  const handleAddTube = async (v: Record<string, string>) => {
+  const handleAddTube = async (value: TubeInput) => {
     const updated = await addTube(
-      tubeFromInputs(v.name, Number(v.diameter), Number(v.thickness))
+      tubeFromInputs(value.name, value.diameter, value.thickness)
     );
     setTubes(updated);
     setActiveModal(null);
   };
 
-  const handleAddBottomBar = async (v: Record<string, string>) => {
+  const handleAddBottomBar = async (value: BottomBarInput) => {
     const updated = await addBottomBar(
-      bottomBarFromInputs(v.name, Number(v.weightLbFt))
+      bottomBarFromInputs(value.name, value.weightLbFt)
     );
     setBottomBars(updated);
     setActiveModal(null);
@@ -200,37 +214,59 @@ export default function App() {
             title="Blind Width (in)"
             value={blindWidth}
             onChangeText={setBlindWidth}
+            error={measurementError(blindWidth)}
+            testID="blind-width-input"
           />
           <View style={{ width: 10 }} />
           <InputField
             title="Blind Height (in)"
             value={blindHeight}
             onChangeText={setBlindHeight}
+            error={measurementError(blindHeight)}
+            testID="blind-height-input"
           />
         </View>
 
         <View style={styles.results}>
           <View style={styles.resultRow}>
             <Text style={styles.resultLabel}>Total Weight</Text>
-            <Text style={styles.resultValue}>
-              {weightLb.toFixed(3)} lb{' '}
-              <Text style={styles.resultSub}>({weightKg.toFixed(3)} kg)</Text>
+            <Text testID="total-weight-result" style={styles.resultValue}>
+              {weightLb === null || weightKg === null ? (
+                '—'
+              ) : (
+                <>
+                  {weightLb.toFixed(3)} lb{' '}
+                  <Text style={styles.resultSub}>({weightKg.toFixed(3)} kg)</Text>
+                </>
+              )}
             </Text>
           </View>
           <View style={styles.divider} />
           <View style={styles.resultRow}>
             <Text style={styles.resultLabel}>Roller Diameter</Text>
-            <Text style={styles.resultValue}>
-              {diameterIn.toFixed(3)} in{' '}
-              <Text style={styles.resultSub}>({diameterMm.toFixed(3)} mm)</Text>
+            <Text testID="roller-diameter-result" style={styles.resultValue}>
+              {diameterIn === null || diameterMm === null ? (
+                '—'
+              ) : (
+                <>
+                  {diameterIn.toFixed(3)} in{' '}
+                  <Text style={styles.resultSub}>({diameterMm.toFixed(3)} mm)</Text>
+                </>
+              )}
             </Text>
           </View>
           <View style={styles.divider} />
           <View style={styles.resultRow}>
             <Text style={styles.resultLabel}>Tube Deflection</Text>
-            <Text style={styles.resultValue}>
-              {deflectionIn.toFixed(3)} in{' '}
-              <Text style={styles.resultSub}>({deflectionMm.toFixed(3)} mm)</Text>
+            <Text testID="tube-deflection-result" style={styles.resultValue}>
+              {deflectionIn === null || deflectionMm === null ? (
+                '—'
+              ) : (
+                <>
+                  {deflectionIn.toFixed(3)} in{' '}
+                  <Text style={styles.resultSub}>({deflectionMm.toFixed(3)} mm)</Text>
+                </>
+              )}
             </Text>
           </View>
 
@@ -255,6 +291,9 @@ export default function App() {
         title="Add Fabric Type"
         fields={fabricFields}
         onCancel={() => setActiveModal(null)}
+        validate={(values) =>
+          validateFabricInput(values, fabricTypes.map((item) => item.name))
+        }
         onSubmit={handleAddFabric}
         onRemoveAll={handleRemoveAllFabrics}
         removeAllLabel="Remove all user-defined fabric types"
@@ -264,6 +303,9 @@ export default function App() {
         title="Add Tube"
         fields={tubeFields}
         onCancel={() => setActiveModal(null)}
+        validate={(values) =>
+          validateTubeInput(values, tubes.map((item) => item.name))
+        }
         onSubmit={handleAddTube}
         onRemoveAll={handleRemoveAllTubes}
         removeAllLabel="Remove all user-defined tubes"
@@ -273,6 +315,9 @@ export default function App() {
         title="Add Bottom Bar"
         fields={bottomBarFields}
         onCancel={() => setActiveModal(null)}
+        validate={(values) =>
+          validateBottomBarInput(values, bottomBars.map((item) => item.name))
+        }
         onSubmit={handleAddBottomBar}
         onRemoveAll={handleRemoveAllBottomBars}
         removeAllLabel="Remove all user-defined bottom bars"
