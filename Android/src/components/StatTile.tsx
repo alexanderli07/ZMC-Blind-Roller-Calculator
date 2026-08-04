@@ -1,5 +1,9 @@
-// Secondary readout. The optional status chip is what turns the deflection
-// limit from a footnote into an answer.
+// Secondary readout. The status pill is what turns the deflection limit from a
+// footnote into an answer, so it sits up on the label row where the eye lands
+// first rather than buried under the number.
+//
+// The pill's row and the secondary-unit line are both reserved whether or not
+// they have content, so the tile does not change height once inputs land.
 
 import React, { useMemo } from 'react';
 import { StyleSheet, Text, View } from 'react-native';
@@ -30,25 +34,42 @@ export default function StatTile({ label, reading, status, caption, testID }: Pr
 
   return (
     <View style={styles.tile} testID={testID}>
-      <Text style={styles.label}>{label}</Text>
+      <View style={styles.headerRow}>
+        <Text style={styles.label} numberOfLines={1}>
+          {label}
+        </Text>
+        {status && (
+          <View style={[styles.chip, over ? styles.chipOver : styles.chipOk]}>
+            <Text style={[styles.chipLabel, over ? styles.chipLabelOver : styles.chipLabelOk]}>
+              {status.label}
+            </Text>
+          </View>
+        )}
+      </View>
+
       <View style={styles.valueRow}>
-        <Text style={[styles.value, over && styles.valueOver]}>{reading.value}</Text>
+        <Text style={[styles.value, over && styles.valueOver]} numberOfLines={1}>
+          {reading.value}
+        </Text>
         {reading.unit !== '' && (
           <Text style={[styles.unit, over && styles.unitOver]}>{` ${reading.unit}`}</Text>
         )}
       </View>
-      {reading.secondary && <Text style={styles.secondary}>{reading.secondary}</Text>}
-      {status && (
-        <View style={[styles.chip, over ? styles.chipOver : styles.chipOk]}>
-          <Text style={[styles.chipLabel, over ? styles.chipLabelOver : styles.chipLabelOk]}>
-            {status.label}
-          </Text>
-        </View>
+
+      <Text style={styles.secondary} numberOfLines={1}>
+        {reading.secondary ?? ' '}
+      </Text>
+      {caption && (
+        <Text style={styles.caption} numberOfLines={1}>
+          {caption}
+        </Text>
       )}
-      {caption && <Text style={styles.caption}>{caption}</Text>}
     </View>
   );
 }
+
+const CHIP_ROW = 22;
+const SUB_LINE = 14;
 
 const createStyles = (colors: ThemeColors) => StyleSheet.create({
   tile: {
@@ -60,39 +81,20 @@ const createStyles = (colors: ThemeColors) => StyleSheet.create({
     paddingHorizontal: space.md,
     paddingVertical: space.md,
   },
-  label: {
-    fontSize: font.caption,
-    fontWeight: '600',
-    color: colors.textSubtle,
-  },
-  valueRow: {
+  headerRow: {
+    minHeight: CHIP_ROW,
     flexDirection: 'row',
-    alignItems: 'baseline',
-    marginTop: 2,
+    alignItems: 'center',
+    justifyContent: 'space-between',
   },
-  value: {
-    fontSize: font.title,
-    fontWeight: '700',
-    color: colors.text,
-  },
-  valueOver: {
-    color: colors.danger,
-  },
-  unit: {
-    fontSize: font.footnote,
-    fontWeight: '600',
-    color: colors.textMuted,
-  },
-  unitOver: {
-    color: colors.danger,
-  },
-  secondary: {
+  label: {
+    flexShrink: 1,
+    paddingRight: space.xs,
     fontSize: font.caption,
+    fontWeight: '600',
     color: colors.textSubtle,
   },
   chip: {
-    alignSelf: 'flex-start',
-    marginTop: space.sm,
     paddingHorizontal: space.sm,
     paddingVertical: 2,
     borderRadius: radius.pill,
@@ -116,8 +118,38 @@ const createStyles = (colors: ThemeColors) => StyleSheet.create({
   chipLabelOver: {
     color: colors.danger,
   },
+  valueRow: {
+    flexDirection: 'row',
+    alignItems: 'baseline',
+    marginTop: space.xs,
+  },
+  value: {
+    fontSize: font.title,
+    lineHeight: font.title + 4,
+    fontWeight: '700',
+    color: colors.text,
+  },
+  valueOver: {
+    color: colors.danger,
+  },
+  unit: {
+    fontSize: font.footnote,
+    fontWeight: '600',
+    color: colors.textMuted,
+  },
+  unitOver: {
+    color: colors.danger,
+  },
+  secondary: {
+    height: SUB_LINE,
+    lineHeight: SUB_LINE,
+    fontSize: font.caption,
+    color: colors.textSubtle,
+  },
   caption: {
     marginTop: space.xs,
+    height: SUB_LINE,
+    lineHeight: SUB_LINE,
     fontSize: font.caption,
     color: colors.textSubtle,
   },
