@@ -575,8 +575,9 @@ const createStyles = (colors: ThemeColors) => StyleSheet.create({
   appTitle: {
     flex: 1,
     marginLeft: space.md,
-    fontSize: font.body,
-    fontWeight: '600',
+    fontSize: font.appTitle,
+    lineHeight: font.appTitle + 3,
+    fontWeight: '700',
     color: colors.text,
   },
   gear: {

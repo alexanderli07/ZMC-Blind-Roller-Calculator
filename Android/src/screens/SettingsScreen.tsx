@@ -5,11 +5,8 @@ import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import {
   Alert,
   Modal,
-  Platform,
-  SafeAreaView,
   ScrollView,
   Share,
-  StatusBar,
   StyleSheet,
   Switch,
   Text,
@@ -19,6 +16,7 @@ import {
 } from 'react-native';
 
 import CustomItemsSheet, { CustomGroup } from '../components/CustomItemsSheet';
+import DragSheet from '../components/DragSheet';
 import Row from '../components/Row';
 import Section from '../components/Section';
 import SegmentedControl, { SegmentOption } from '../components/SegmentedControl';
@@ -41,7 +39,7 @@ import {
   removeTube,
 } from '../storage';
 import { ThemeColors, ThemePreference, useTheme } from '../theme/theme';
-import { font, MIN_TOUCH, radius, space } from '../theme/tokens';
+import { font, ICON_GLYPH, MIN_TOUCH, radius, space } from '../theme/tokens';
 
 const APPEARANCE_OPTIONS: SegmentOption<ThemePreference>[] = [
   { value: 'system', label: 'System', a11yLabel: 'System appearance' },
@@ -216,8 +214,11 @@ export default function SettingsScreen({ visible, onClose }: Props) {
   );
 
   return (
-    <Modal visible={visible} animationType="slide" onRequestClose={onClose}>
-      <SafeAreaView style={styles.screen} testID="settings-screen">
+    <DragSheet
+      visible={visible}
+      onClose={onClose}
+      testID="settings-screen"
+      header={
         <View style={styles.header}>
           <TouchableOpacity
             accessibilityRole="button"
@@ -225,12 +226,13 @@ export default function SettingsScreen({ visible, onClose }: Props) {
             style={styles.iconButton}
             onPress={onClose}
           >
-            <Text style={styles.back}>‹</Text>
+            <Text style={styles.back}>❮</Text>
           </TouchableOpacity>
           <Text style={styles.title}>Settings</Text>
         </View>
-
-        <ScrollView contentContainerStyle={styles.scroll}>
+      }
+    >
+      <ScrollView contentContainerStyle={styles.scroll}>
           <Section title="Appearance" padded>
             <SegmentedControl
               options={APPEARANCE_OPTIONS}
@@ -382,8 +384,7 @@ export default function SettingsScreen({ visible, onClose }: Props) {
           colors={colors}
           testID="import-modal"
         />
-      </SafeAreaView>
-    </Modal>
+    </DragSheet>
   );
 }
 
@@ -504,19 +505,11 @@ function PromptModal({
 }
 
 const createStyles = (colors: ThemeColors) => StyleSheet.create({
-  screen: {
-    flex: 1,
-    backgroundColor: colors.background,
-    paddingTop: Platform.OS === 'android' ? StatusBar.currentHeight : 0,
-  },
   header: {
     flexDirection: 'row',
     alignItems: 'center',
     paddingHorizontal: space.sm,
-    paddingVertical: space.sm,
-    backgroundColor: colors.surface,
-    borderBottomWidth: 1,
-    borderBottomColor: colors.border,
+    paddingBottom: space.sm,
   },
   iconButton: {
     width: MIN_TOUCH,
@@ -524,9 +517,10 @@ const createStyles = (colors: ThemeColors) => StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
   },
+  // Matches the ✕ on the picker sheets: same size, same weight.
   back: {
-    fontSize: 30,
-    lineHeight: 32,
+    fontSize: ICON_GLYPH,
+    fontWeight: '700',
     color: colors.primary,
   },
   title: {

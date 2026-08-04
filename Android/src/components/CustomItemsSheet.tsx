@@ -4,19 +4,16 @@
 import React, { useMemo } from 'react';
 import {
   Alert,
-  Modal,
-  Platform,
-  SafeAreaView,
   ScrollView,
-  StatusBar,
   StyleSheet,
   Text,
   TouchableOpacity,
   View,
 } from 'react-native';
 
+import DragSheet from './DragSheet';
 import { ThemeColors, useTheme } from '../theme/theme';
-import { font, MIN_TOUCH, radius, space } from '../theme/tokens';
+import { font, ICON_GLYPH, MIN_TOUCH, radius, space } from '../theme/tokens';
 
 export interface CustomGroup {
   key: string;
@@ -44,8 +41,11 @@ export default function CustomItemsSheet({ visible, groups, onRemove, onClose }:
   };
 
   return (
-    <Modal visible={visible} animationType="slide" onRequestClose={onClose}>
-      <SafeAreaView style={styles.screen} testID="custom-items-sheet">
+    <DragSheet
+      visible={visible}
+      onClose={onClose}
+      testID="custom-items-sheet"
+      header={
         <View style={styles.header}>
           <TouchableOpacity
             accessibilityRole="button"
@@ -57,60 +57,52 @@ export default function CustomItemsSheet({ visible, groups, onRemove, onClose }:
           </TouchableOpacity>
           <Text style={styles.title}>Custom items</Text>
         </View>
-
-        <ScrollView contentContainerStyle={styles.scroll}>
-          {total === 0 && (
-            <Text style={styles.empty}>
-              Nothing added yet. Anything you add from a picker shows up here.
-            </Text>
-          )}
-          {groups
-            .filter((group) => group.items.length > 0)
-            .map((group) => (
-              <View key={group.key} style={styles.group}>
-                <Text style={styles.groupTitle}>{group.title}</Text>
-                <View style={styles.card}>
-                  {group.items.map((name, index) => (
-                    <View
-                      key={name}
-                      style={[styles.row, index < group.items.length - 1 && styles.divider]}
+      }
+    >
+      <ScrollView contentContainerStyle={styles.scroll}>
+        {total === 0 && (
+          <Text style={styles.empty}>
+            Nothing added yet. Anything you add from a picker shows up here.
+          </Text>
+        )}
+        {groups
+          .filter((group) => group.items.length > 0)
+          .map((group) => (
+            <View key={group.key} style={styles.group}>
+              <Text style={styles.groupTitle}>{group.title}</Text>
+              <View style={styles.card}>
+                {group.items.map((name, index) => (
+                  <View
+                    key={name}
+                    style={[styles.row, index < group.items.length - 1 && styles.divider]}
+                  >
+                    <Text style={styles.name} numberOfLines={1}>
+                      {name}
+                    </Text>
+                    <TouchableOpacity
+                      accessibilityRole="button"
+                      accessibilityLabel={`Remove ${name}`}
+                      style={styles.removeButton}
+                      onPress={() => confirmRemove(group.key, name)}
                     >
-                      <Text style={styles.name} numberOfLines={1}>
-                        {name}
-                      </Text>
-                      <TouchableOpacity
-                        accessibilityRole="button"
-                        accessibilityLabel={`Remove ${name}`}
-                        style={styles.removeButton}
-                        onPress={() => confirmRemove(group.key, name)}
-                      >
-                        <Text style={styles.removeIcon}>✕</Text>
-                      </TouchableOpacity>
-                    </View>
-                  ))}
-                </View>
+                      <Text style={styles.removeIcon}>✕</Text>
+                    </TouchableOpacity>
+                  </View>
+                ))}
               </View>
-            ))}
-        </ScrollView>
-      </SafeAreaView>
-    </Modal>
+            </View>
+          ))}
+      </ScrollView>
+    </DragSheet>
   );
 }
 
 const createStyles = (colors: ThemeColors) => StyleSheet.create({
-  screen: {
-    flex: 1,
-    backgroundColor: colors.background,
-    paddingTop: Platform.OS === 'android' ? StatusBar.currentHeight : 0,
-  },
   header: {
     flexDirection: 'row',
     alignItems: 'center',
     paddingHorizontal: space.sm,
-    paddingVertical: space.sm,
-    backgroundColor: colors.surface,
-    borderBottomWidth: 1,
-    borderBottomColor: colors.border,
+    paddingBottom: space.sm,
   },
   iconButton: {
     width: MIN_TOUCH,
@@ -119,7 +111,8 @@ const createStyles = (colors: ThemeColors) => StyleSheet.create({
     justifyContent: 'center',
   },
   icon: {
-    fontSize: font.title,
+    fontSize: ICON_GLYPH,
+    fontWeight: '700',
     color: colors.textMuted,
   },
   title: {
