@@ -9,6 +9,7 @@ import React, {
 } from 'react';
 import { ColorSchemeName, useColorScheme } from 'react-native';
 import { loadThemePreference, saveThemePreference } from './themeStorage';
+import { ZMC_RED, ZMC_RED_ON_DARK } from './tokens';
 
 export type ThemePreference = 'system' | 'light' | 'dark';
 export type ResolvedTheme = 'light' | 'dark';
@@ -27,6 +28,9 @@ export interface ThemeColors {
   danger: string;
   dangerSurface: string;
   dangerBorder: string;
+  success: string;
+  successSurface: string;
+  successBorder: string;
   overlay: string;
   shadow: string;
 }
@@ -40,11 +44,16 @@ export const lightPalette: ThemeColors = {
   textSubtle: '#8A939C',
   border: '#D0D5DA',
   divider: '#ECEFF2',
-  primary: '#007AFF',
+  primary: ZMC_RED,
   onPrimary: '#FFFFFF',
-  danger: '#C0392B',
-  dangerSurface: '#FDF2F2',
-  dangerBorder: '#E3B1B1',
+  // Deliberately darker and browner than the brand crimson so an over-limit
+  // reading never reads as just another branded accent.
+  danger: '#8E1F14',
+  dangerSurface: '#FBEAE7',
+  dangerBorder: '#E0A99F',
+  success: '#2F6B14',
+  successSurface: '#EAF3DE',
+  successBorder: '#B7D593',
   overlay: 'rgba(0,0,0,0.40)',
   shadow: '#000000',
 };
@@ -58,11 +67,14 @@ export const darkPalette: ThemeColors = {
   textSubtle: '#8F9AA5',
   border: '#3A454F',
   divider: '#303A43',
-  primary: '#5CADFF',
-  onPrimary: '#07131F',
-  danger: '#FF8A80',
-  dangerSurface: '#3B2022',
-  dangerBorder: '#754044',
+  primary: ZMC_RED_ON_DARK,
+  onPrimary: '#2C0710',
+  danger: '#FFA79B',
+  dangerSurface: '#3B1E1A',
+  dangerBorder: '#7A4238',
+  success: '#A8D46A',
+  successSurface: '#1E2A12',
+  successBorder: '#41611F',
   overlay: 'rgba(0,0,0,0.70)',
   shadow: '#000000',
 };
