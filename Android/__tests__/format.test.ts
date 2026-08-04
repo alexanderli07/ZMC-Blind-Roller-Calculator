@@ -38,7 +38,10 @@ test('rounds a weight to the requested places', () => {
 
 test('labels the deflection limit in the active unit', () => {
   expect(lengthLabel(0.375, 'imperial', 3)).toBe('0.375 in');
-  expect(lengthLabel(0.375, 'metric', 2)).toBe('9.53 mm');
+  expect(lengthLabel(0.375, 'metric', 3)).toBe('9.525 mm');
+  // 0.375 * 25.4 lands on 9.52499999... in binary, so asking for two places
+  // rounds down. The default is three, where the exact value shows.
+  expect(lengthLabel(0.375, 'metric', 2)).toBe('9.52 mm');
 });
 
 test('keeps the physical size when the unit toggle changes', () => {
