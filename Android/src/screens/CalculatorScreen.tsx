@@ -5,6 +5,7 @@
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import {
   Image,
+  Linking,
   ScrollView,
   Share,
   StyleSheet,
@@ -15,6 +16,7 @@ import {
 
 import AddItemModal, { FieldSpec } from '../components/AddItemModal';
 import DimensionsCard from '../components/DimensionsCard';
+import GearIcon from '../components/GearIcon';
 import ResultCard from '../components/ResultCard';
 import Row from '../components/Row';
 import Section from '../components/Section';
@@ -357,14 +359,16 @@ export default function CalculatorScreen() {
           accessibilityRole="image"
           accessibilityLabel="ZMC Window Covering Supplies"
         />
-        <Text style={styles.appTitle}>Roller calculator</Text>
+        <Text style={styles.appTitle} numberOfLines={2}>
+          Blind Roller Calculator
+        </Text>
         <TouchableOpacity
           accessibilityRole="button"
           accessibilityLabel="Settings"
           style={styles.gear}
           onPress={() => setSettingsVisible(true)}
         >
-          <Text style={styles.gearIcon}>⚙</Text>
+          <GearIcon color={colors.textMuted} holeColor={colors.surface} />
         </TouchableOpacity>
       </View>
 
@@ -433,6 +437,26 @@ export default function CalculatorScreen() {
           onChangeHeight={setBlindHeight}
           onChangeUnits={changeUnits}
         />
+
+        <View style={styles.footer}>
+          <TouchableOpacity
+            accessibilityRole="link"
+            accessibilityLabel="zmc.ca"
+            hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
+            onPress={() => void Linking.openURL('https://www.zmc.ca')}
+          >
+            <Text style={styles.footerLink}>www.zmc.ca</Text>
+          </TouchableOpacity>
+          <Text style={styles.footerSeparator}>·</Text>
+          <TouchableOpacity
+            accessibilityRole="link"
+            accessibilityLabel="contact@zmc.ca"
+            hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
+            onPress={() => void Linking.openURL('mailto:contact@zmc.ca')}
+          >
+            <Text style={styles.footerLink}>contact@zmc.ca</Text>
+          </TouchableOpacity>
+        </View>
       </ScrollView>
 
       <View style={styles.actionBar}>
@@ -564,15 +588,32 @@ const createStyles = (colors: ThemeColors) => StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
   },
-  gearIcon: {
-    fontSize: font.heading,
-    color: colors.textMuted,
-  },
+  // flexGrow + space-between lets the cards spread to whatever height the
+  // device gives them instead of stranding everything at the top of an
+  // iPhone 14 Pro, while still scrolling normally on a short screen.
   scroll: {
     padding: space.md,
+    flexGrow: 1,
+    justifyContent: 'space-between',
   },
   hero: {
     marginBottom: space.sm,
+  },
+  footer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingTop: space.xs,
+  },
+  footerLink: {
+    fontSize: font.footnote,
+    fontWeight: '600',
+    color: colors.primary,
+  },
+  footerSeparator: {
+    marginHorizontal: space.sm,
+    fontSize: font.footnote,
+    color: colors.textSubtle,
   },
   tileRow: {
     flexDirection: 'row',

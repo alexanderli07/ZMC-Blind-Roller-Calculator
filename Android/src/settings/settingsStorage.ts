@@ -20,7 +20,8 @@ export interface Settings {
 }
 
 export const MIN_DECIMALS = 0;
-export const MAX_DECIMALS = 4;
+// Deflection lands around 0.008 in on short blinds, so leave real headroom.
+export const MAX_DECIMALS = 6;
 
 export const defaultSettings: Settings = {
   units: 'imperial',
