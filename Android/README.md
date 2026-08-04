@@ -26,11 +26,15 @@ src/
   types.ts                  FabricType / Tube / BottomBar models
   calculations.ts           weight, roller diameter, deflection formulas
   storage.ts                bundled defaults + persisted custom items
+  theme/
+    theme.tsx               palettes, system resolution, provider
+    themeStorage.ts         persisted appearance preference
   data/
     fabricTypes.json        28 fabrics (g/m², mm)
     tubes.json              18 tubes (mm, in^4, PSI, lb/ft)
     bottomBars.json         11 bottom bars (g/m, lb/ft)
   components/
+    AppearanceModal.tsx     System / Light / Dark settings
     ScrollablePicker.tsx
     InputField.tsx
     AddItemModal.tsx        generic add-new-item modal (fabric/tube/bottom bar)
@@ -47,6 +51,17 @@ npm.cmd start
 ```
 
 Install Expo Go on the Android phone, keep the phone and computer on the same Wi-Fi network, and scan the terminal QR code. If LAN discovery is blocked, run `npm.cmd start -- --tunnel`.
+
+## Appearance
+
+The app follows the Android system light/dark setting on first install. Tap the
+gear in the header to select System, Light, or Dark. Manual Light/Dark choices
+are stored locally and restored after the app restarts; choosing System resumes
+live Android appearance changes.
+
+For a manual smoke test, leave the app open in System mode and switch Android
+between light and dark. Then select a manual override, reload Expo Go, confirm
+the override persists, and return to System.
 
 ## Automated checks
 
