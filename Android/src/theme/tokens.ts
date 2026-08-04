@@ -28,11 +28,17 @@ export const font = {
   body: 15,
   title: 17,
   heading: 20,
+  // Sized to stand as the logo's equal in the header rather than caption it.
+  appTitle: 22,
   hero: 34,
 } as const;
 
 // Minimum comfortable touch target. The old 22px "+" was half of this.
 export const MIN_TOUCH = 44;
+
+// Close and back glyphs share this so they read as the same control at the
+// same weight, whichever sheet they are on.
+export const ICON_GLYPH = 22;
 
 // The header logo is assets/zmcLogo.png at 313x161.
 export const LOGO_ASPECT = 313 / 161;
