@@ -47,10 +47,21 @@ const STRIP_HEIGHT = 56;
 
 const OPEN_DURATION = 280;
 const CLOSE_DURATION = 220;
-const FLING_DURATION = 180;
-const SETTLE_DURATION = 180;
+// A released drag continues at roughly the speed the finger left at, so the
+// handover is not a visible change of pace. Bounds keep a flick from being
+// instant and a slow release from crawling.
+const RELEASE_MIN_DURATION = 130;
+const RELEASE_MAX_DURATION = 320;
+// Floor on px/ms, so a near-motionless release still resolves promptly.
+const MIN_RELEASE_SPEED = 1.1;
 // Fallback in case onShow never arrives, so a sheet can never stick off-screen.
 const ENTRANCE_FALLBACK = 250;
+
+function releaseDuration(distance: number, velocity: number): number {
+  const speed = Math.max(Math.abs(velocity), MIN_RELEASE_SPEED);
+  const carried = Math.max(1, distance) / speed;
+  return Math.min(RELEASE_MAX_DURATION, Math.max(RELEASE_MIN_DURATION, carried));
+}
 
 const offscreen = () => Dimensions.get('window').height;
 
@@ -142,10 +153,12 @@ export default function DragSheet({ visible, onClose, header, children, testID }
 
   const responderRef = useRef<ReturnType<typeof PanResponder.create> | null>(null);
   if (responderRef.current === null) {
-    const settle = () => {
+    // Snapping back covers however far the drag got, at the speed it was
+    // travelling, so a 5pt nudge does not take as long as a 100pt pull.
+    const settle = (dragged: number, velocity: number) => {
       Animated.timing(translateY, {
         toValue: 0,
-        duration: SETTLE_DURATION,
+        duration: releaseDuration(Math.max(0, dragged), velocity),
         easing: Easing.out(Easing.cubic),
         useNativeDriver: false,
       }).start();
@@ -165,16 +178,20 @@ export default function DragSheet({ visible, onClose, header, children, testID }
       },
       onPanResponderRelease: (_event, gesture) => {
         if (gesture.dy > DISMISS_DISTANCE || gesture.vy > DISMISS_VELOCITY) {
+          const travelled = Math.max(0, gesture.dy);
+          // Only the distance still to cover, or a long drag would take as
+          // long to finish as a short one.
+          const duration = releaseDuration(offscreen() - travelled, gesture.vy);
           Animated.parallel([
             Animated.timing(translateY, {
               toValue: offscreen(),
-              duration: FLING_DURATION,
+              duration,
               easing: Easing.out(Easing.quad),
               useNativeDriver: false,
             }),
             Animated.timing(backdrop, {
               toValue: 0,
-              duration: FLING_DURATION,
+              duration,
               easing: Easing.out(Easing.quad),
               useNativeDriver: true,
             }),
@@ -186,9 +203,9 @@ export default function DragSheet({ visible, onClose, header, children, testID }
           });
           return;
         }
-        settle();
+        settle(gesture.dy, gesture.vy);
       },
-      onPanResponderTerminate: settle,
+      onPanResponderTerminate: (_event, gesture) => settle(gesture.dy, gesture.vy),
     });
   }
 
