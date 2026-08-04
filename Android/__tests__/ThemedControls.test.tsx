@@ -54,9 +54,11 @@ test('themes the select sheet in dark mode', async () => {
     </ThemeProvider>
   );
 
+  // The sheet's base is the chrome colour so no pale band shows above the
+  // header; the page colour sits on the body below it.
   await waitFor(() =>
     expect(screen.getByTestId('tube-sheet')).toHaveStyle({
-      backgroundColor: darkPalette.background,
+      backgroundColor: darkPalette.surface,
     })
   );
   expect(screen.getByPlaceholderText('Search tubes').props.placeholderTextColor).toBe(

@@ -231,7 +231,7 @@ export default function DragSheet({ visible, onClose, header, children, testID }
               </View>
               {header}
             </View>
-            {children}
+            <View style={styles.body}>{children}</View>
           </SafeAreaView>
         </Animated.View>
       </View>
@@ -247,9 +247,14 @@ const createStyles = (colors: ThemeColors) => StyleSheet.create({
     ...StyleSheet.absoluteFillObject,
     backgroundColor: colors.overlay,
   },
+  // Surface, not background, so the strip SafeAreaView reserves above the
+  // header is the same white as the header itself. With the page colour here
+  // there was a pale band across the top of every sheet, separated from the
+  // chrome by nothing but a colour change, and dragging slowly meant watching
+  // three stacked bands slide at once.
   screen: {
     flex: 1,
-    backgroundColor: colors.background,
+    backgroundColor: colors.surface,
     paddingTop: Platform.OS === 'android' ? StatusBar.currentHeight : 0,
   },
   safe: {
@@ -259,6 +264,11 @@ const createStyles = (colors: ThemeColors) => StyleSheet.create({
     backgroundColor: colors.surface,
     borderBottomWidth: 1,
     borderBottomColor: colors.border,
+  },
+  // The page colour belongs to the content, below the chrome.
+  body: {
+    flex: 1,
+    backgroundColor: colors.background,
   },
   grabStrip: {
     height: STRIP_HEIGHT,
