@@ -3,6 +3,26 @@ import type { TestInstance } from 'test-renderer';
 import AddItemModal from '../src/components/AddItemModal';
 import { validateFabricInput } from '../src/validation';
 
+jest.mock('../src/theme/themeStorage', () => ({
+  loadThemePreference: jest.fn(),
+  saveThemePreference: jest.fn(),
+}));
+
+jest.mock('../src/theme/theme', () => {
+  const actual = jest.requireActual('../src/theme/theme');
+  return {
+    ...actual,
+    useTheme: () => ({
+      preference: 'system',
+      resolvedTheme: 'light',
+      colors: actual.lightPalette,
+      saveError: null,
+      setPreference: jest.fn(),
+      clearSaveError: jest.fn(),
+    }),
+  };
+});
+
 const fields = [{ key: 'name', label: 'Name', numeric: false }];
 const fabricFields = [
   { key: 'name', label: 'Name', numeric: false },

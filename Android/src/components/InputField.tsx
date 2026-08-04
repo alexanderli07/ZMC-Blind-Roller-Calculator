@@ -1,7 +1,8 @@
 // Labelled numeric text input — port of InputFieldSection.
 
-import React from 'react';
+import React, { useMemo } from 'react';
 import { View, Text, TextInput, StyleSheet } from 'react-native';
+import { ThemeColors, useTheme } from '../theme/theme';
 
 interface Props {
   title: string;
@@ -12,6 +13,9 @@ interface Props {
 }
 
 export default function InputField({ title, value, onChangeText, error, testID }: Props) {
+  const { colors } = useTheme();
+  const styles = useMemo(() => createStyles(colors), [colors]);
+
   return (
     <View style={styles.container}>
       <Text style={styles.title}>{title}</Text>
@@ -20,6 +24,8 @@ export default function InputField({ title, value, onChangeText, error, testID }
         value={value}
         onChangeText={onChangeText}
         placeholder={title}
+        placeholderTextColor={colors.textSubtle}
+        selectionColor={colors.primary}
         keyboardType="decimal-pad"
         testID={testID}
       />
@@ -28,26 +34,28 @@ export default function InputField({ title, value, onChangeText, error, testID }
   );
 }
 
-const styles = StyleSheet.create({
+const createStyles = (colors: ThemeColors) => StyleSheet.create({
   container: {
     flex: 1,
   },
   title: {
+    color: colors.text,
     fontSize: 17,
     fontWeight: '600',
     marginBottom: 5,
   },
   input: {
-    backgroundColor: '#fff',
+    backgroundColor: colors.surface,
+    color: colors.text,
     borderRadius: 8,
     borderWidth: 1,
-    borderColor: '#d0d5da',
+    borderColor: colors.border,
     paddingHorizontal: 10,
     paddingVertical: 8,
     fontSize: 16,
   },
   error: {
-    color: '#c0392b',
+    color: colors.danger,
     fontSize: 12,
     marginTop: 3,
   },
