@@ -103,7 +103,15 @@ export default function DragSheet({ visible, onClose, header, children, testID }
   }
 
   return (
-    <Modal visible={visible} animationType="slide" onRequestClose={onClose}>
+    // transparent, so dragging the sheet down uncovers the live screen behind
+    // it rather than the modal's own blank surface. The sheet paints its own
+    // full-bleed background, so it still looks opaque when it is at rest.
+    <Modal
+      visible={visible}
+      transparent
+      animationType="slide"
+      onRequestClose={onClose}
+    >
       <Animated.View
         style={[styles.screen, { transform: [{ translateY }] }]}
         testID={testID}
