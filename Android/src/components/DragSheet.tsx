@@ -16,10 +16,12 @@
 //    soon as visible flipped meant the animation was already part-way through
 //    by the time iOS finished presenting, so the sheet popped into view
 //    mid-flight instead of sliding up from the bottom.
-//  - Each animated value keeps to one driver for its whole life. translateY is
-//    JS-driven because PanResponder feeds it from JS every frame; the backdrop
-//    is native-driven and never touched during a drag, which keeps the frame
-//    cost to a single transform update. Mixing drivers on one value throws.
+//  - The dim is derived from the sheet's own translateY rather than animated
+//    alongside it. PanResponder feeds translateY from JS, so it cannot leave the
+//    JS driver; a separate natively-driven value for the dim updates on the UI
+//    thread instead and drifts a frame or two out of step, which reads as the
+//    backdrop sliding at its own pace behind the sheet. One value, one update
+//    path, no parallax.
 //  - Every animation is a timing curve. A spring was settling with a wobble.
 
 import React, { ReactNode, useEffect, useMemo, useRef, useState } from 'react';
@@ -80,8 +82,19 @@ export default function DragSheet({ visible, onClose, header, children, testID }
 
   // Never animated with the native driver, because the drag sets it from JS.
   const translateY = useRef(new Animated.Value(offscreen())).current;
-  // Only ever animated, never set, so it can stay on the native driver.
-  const backdrop = useRef(new Animated.Value(0)).current;
+
+  // Derived from the sheet's position rather than animated in parallel with it,
+  // so the two can never fall out of step. Memoised so each render does not
+  // graft a fresh node onto the animation.
+  const backdropOpacity = useMemo(
+    () =>
+      translateY.interpolate({
+        inputRange: [0, offscreen()],
+        outputRange: [1, 0],
+        extrapolate: 'clamp',
+      }),
+    [translateY]
+  );
 
   // The sheet has to outlive visible=false long enough to animate out, so the
   // Modal follows this rather than the prop.
@@ -98,20 +111,12 @@ export default function DragSheet({ visible, onClose, header, children, testID }
   const runEntrance = () => {
     if (enteredRef.current) return;
     enteredRef.current = true;
-    Animated.parallel([
-      Animated.timing(translateY, {
-        toValue: 0,
-        duration: OPEN_DURATION,
-        easing: Easing.out(Easing.cubic),
-        useNativeDriver: false,
-      }),
-      Animated.timing(backdrop, {
-        toValue: 1,
-        duration: OPEN_DURATION,
-        easing: Easing.out(Easing.quad),
-        useNativeDriver: true,
-      }),
-    ]).start();
+    Animated.timing(translateY, {
+      toValue: 0,
+      duration: OPEN_DURATION,
+      easing: Easing.out(Easing.cubic),
+      useNativeDriver: false,
+    }).start();
   };
 
   useEffect(() => {
@@ -126,20 +131,12 @@ export default function DragSheet({ visible, onClose, header, children, testID }
     }
 
     if (!mountedRef.current) return;
-    Animated.parallel([
-      Animated.timing(translateY, {
-        toValue: offscreen(),
-        duration: CLOSE_DURATION,
-        easing: Easing.in(Easing.cubic),
-        useNativeDriver: false,
-      }),
-      Animated.timing(backdrop, {
-        toValue: 0,
-        duration: CLOSE_DURATION,
-        easing: Easing.in(Easing.quad),
-        useNativeDriver: true,
-      }),
-    ]).start(({ finished }) => {
+    Animated.timing(translateY, {
+      toValue: offscreen(),
+      duration: CLOSE_DURATION,
+      easing: Easing.in(Easing.cubic),
+      useNativeDriver: false,
+    }).start(({ finished }) => {
       // Reopening interrupts this; unmounting then would kill the new sheet.
       if (!finished) return;
       mountedRef.current = false;
@@ -149,7 +146,7 @@ export default function DragSheet({ visible, onClose, header, children, testID }
     // runEntrance is stable in everything it touches, and adding it would
     // re-run the whole open/close animation on every render.
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [visible, translateY, backdrop]);
+  }, [visible, translateY]);
 
   const responderRef = useRef<ReturnType<typeof PanResponder.create> | null>(null);
   if (responderRef.current === null) {
@@ -182,20 +179,12 @@ export default function DragSheet({ visible, onClose, header, children, testID }
           // Only the distance still to cover, or a long drag would take as
           // long to finish as a short one.
           const duration = releaseDuration(offscreen() - travelled, gesture.vy);
-          Animated.parallel([
-            Animated.timing(translateY, {
-              toValue: offscreen(),
-              duration,
-              easing: Easing.out(Easing.quad),
-              useNativeDriver: false,
-            }),
-            Animated.timing(backdrop, {
-              toValue: 0,
-              duration,
-              easing: Easing.out(Easing.quad),
-              useNativeDriver: true,
-            }),
-          ]).start(({ finished }) => {
+          Animated.timing(translateY, {
+            toValue: offscreen(),
+            duration,
+            easing: Easing.out(Easing.quad),
+            useNativeDriver: false,
+          }).start(({ finished }) => {
             if (!finished) return;
             mountedRef.current = false;
             setMounted(false);
@@ -221,7 +210,10 @@ export default function DragSheet({ visible, onClose, header, children, testID }
       onRequestClose={onClose}
     >
       <View style={styles.fill}>
-        <Animated.View pointerEvents="none" style={[styles.backdrop, { opacity: backdrop }]} />
+        <Animated.View
+          pointerEvents="none"
+          style={[styles.backdrop, { opacity: backdropOpacity }]}
+        />
         <Animated.View
           style={[styles.screen, { transform: [{ translateY }] }]}
           testID={testID}
