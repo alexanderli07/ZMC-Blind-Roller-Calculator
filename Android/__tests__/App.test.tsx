@@ -59,7 +59,7 @@ async function seedSettings(overrides: Record<string, unknown> = {}) {
   );
 }
 
-async function chooseEverything(screen: ReturnType<typeof render>) {
+async function chooseEverything(screen: Awaited<ReturnType<typeof render>>) {
   await waitFor(() => expect(storage.loadBottomBars).toHaveBeenCalled());
 
   // The sheets mount a tick after visible flips, so these have to be awaited.
@@ -89,9 +89,9 @@ beforeEach(async () => {
 describe('<App />', () => {
   test('starts with placeholders instead of fallback calculations', async () => {
     const screen = await render(<App />);
-    expect(screen.getByTestId('total-weight-result')).toHaveTextContent('—');
-    expect(screen.getByTestId('roller-diameter-result')).toHaveTextContent('—');
-    expect(screen.getByTestId('tube-deflection-result')).toHaveTextContent('—');
+    expect(screen.getByTestId('total-weight-result')).toHaveTextContent(/—/);
+    expect(screen.getByTestId('roller-diameter-result')).toHaveTextContent(/—/);
+    expect(screen.getByTestId('tube-deflection-result')).toHaveTextContent(/—/);
     await waitFor(() => expect(storage.loadTubes).toHaveBeenCalled());
   });
 
@@ -107,17 +107,17 @@ describe('<App />', () => {
 
     // Waits out the stored-settings load that raises precision to three places.
     await waitFor(() =>
-      expect(screen.getByTestId('total-weight-result')).toHaveTextContent('3.845 lb')
+      expect(screen.getByTestId('total-weight-result')).toHaveTextContent(/3\.845 lb/)
     );
-    expect(screen.getByTestId('total-weight-result')).toHaveTextContent('1.744 kg');
+    expect(screen.getByTestId('total-weight-result')).toHaveTextContent(/1\.744 kg/);
 
     const diameter = screen.getByTestId('roller-diameter-result');
-    expect(diameter).toHaveTextContent('1.574 in');
-    expect(diameter).toHaveTextContent('39.975 mm');
+    expect(diameter).toHaveTextContent(/1\.574 in/);
+    expect(diameter).toHaveTextContent(/39\.975 mm/);
 
     const deflection = screen.getByTestId('tube-deflection-result');
-    expect(deflection).toHaveTextContent('0.127 in');
-    expect(deflection).toHaveTextContent('3.223 mm');
+    expect(deflection).toHaveTextContent(/0\.127 in/);
+    expect(deflection).toHaveTextContent(/3\.223 mm/);
   });
 
   test('reports deflection against the configured limit', async () => {
@@ -126,9 +126,9 @@ describe('<App />', () => {
     await chooseEverything(screen);
 
     await waitFor(() =>
-      expect(screen.getByTestId('tube-deflection-result')).toHaveTextContent('Within limit')
+      expect(screen.getByTestId('tube-deflection-result')).toHaveTextContent(/Within limit/)
     );
-    expect(screen.getByTestId('tube-deflection-result')).toHaveTextContent('Max 0.375 in');
+    expect(screen.getByTestId('tube-deflection-result')).toHaveTextContent(/Max 0\.375 in/);
   });
 
   test('flags deflection over a tightened limit', async () => {
@@ -137,7 +137,7 @@ describe('<App />', () => {
     await chooseEverything(screen);
 
     await waitFor(() =>
-      expect(screen.getByTestId('tube-deflection-result')).toHaveTextContent('Over limit')
+      expect(screen.getByTestId('tube-deflection-result')).toHaveTextContent(/Over limit/)
     );
   });
 
@@ -145,7 +145,7 @@ describe('<App />', () => {
     const screen = await render(<App />);
     await fireEvent.changeText(screen.getByTestId('blind-width-input'), '0');
     expect(screen.getByText('Enter a number greater than 0.')).toBeTruthy();
-    expect(screen.getByTestId('total-weight-result')).toHaveTextContent('—');
+    expect(screen.getByTestId('total-weight-result')).toHaveTextContent(/—/);
   });
 
   test('converts entered dimensions when the unit toggle changes', async () => {

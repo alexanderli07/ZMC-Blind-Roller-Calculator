@@ -39,7 +39,7 @@ import {
 } from 'react-native';
 
 import { ThemeColors, useTheme } from '../theme/theme';
-import { radius, space } from '../theme/tokens';
+import { radius } from '../theme/tokens';
 
 // How far down, or how fast, before a release dismisses instead of snapping back.
 const DISMISS_DISTANCE = 110;

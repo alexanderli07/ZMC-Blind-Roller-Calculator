@@ -21,6 +21,13 @@ interface Part {
   unit: string;
 }
 
+function fixed(value: number, decimals: number): string {
+  const scale = 10 ** decimals;
+  const tolerance = Number.EPSILON * Math.max(1, Math.abs(value));
+  const rounded = Math.round((value + tolerance) * scale) / scale;
+  return rounded.toFixed(decimals);
+}
+
 function pick(
   imperial: Part,
   metric: Part,
@@ -31,9 +38,9 @@ function pick(
   const primary = system === 'imperial' ? imperial : metric;
   const other = system === 'imperial' ? metric : imperial;
   return {
-    value: primary.value.toFixed(decimals),
+    value: fixed(primary.value, decimals),
     unit: primary.unit,
-    secondary: showSecondary ? `${other.value.toFixed(decimals)} ${other.unit}` : null,
+    secondary: showSecondary ? `${fixed(other.value, decimals)} ${other.unit}` : null,
   };
 }
 
@@ -62,7 +69,7 @@ export function weightReading(
 // A flat "0.375 in" / "9.525 mm" for captions, with no secondary unit.
 export function lengthLabel(inch: number, system: UnitSystem, decimals: number): string {
   const shown = system === 'imperial' ? inch : inch * MM_PER_IN;
-  return `${shown.toFixed(decimals)} ${unitSuffix(system)}`;
+  return `${fixed(shown, decimals)} ${unitSuffix(system)}`;
 }
 
 export function unitSuffix(system: UnitSystem): string {
