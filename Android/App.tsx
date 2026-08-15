@@ -3,6 +3,7 @@
 import React from 'react';
 import { Platform, SafeAreaView, StatusBar, StyleSheet } from 'react-native';
 import { StatusBar as ExpoStatusBar } from 'expo-status-bar';
+import { SafeAreaProvider, initialWindowMetrics } from 'react-native-safe-area-context';
 
 import CalculatorScreen from './src/screens/CalculatorScreen';
 import { SettingsProvider } from './src/settings/settings';
@@ -24,11 +25,13 @@ function Frame() {
 
 export default function App() {
   return (
-    <ThemeProvider>
-      <SettingsProvider>
-        <Frame />
-      </SettingsProvider>
-    </ThemeProvider>
+    <SafeAreaProvider initialMetrics={initialWindowMetrics}>
+      <ThemeProvider>
+        <SettingsProvider>
+          <Frame />
+        </SettingsProvider>
+      </ThemeProvider>
+    </SafeAreaProvider>
   );
 }
 
