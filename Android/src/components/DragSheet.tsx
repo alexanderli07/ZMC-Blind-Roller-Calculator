@@ -31,12 +31,10 @@ import {
   Easing,
   Modal,
   PanResponder,
-  Platform,
-  SafeAreaView,
-  StatusBar,
   StyleSheet,
   View,
 } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { ThemeColors, useTheme } from '../theme/theme';
 import { radius } from '../theme/tokens';
@@ -79,6 +77,7 @@ interface Props {
 export default function DragSheet({ visible, onClose, header, children, testID }: Props) {
   const { colors } = useTheme();
   const styles = useMemo(() => createStyles(colors), [colors]);
+  const insets = useSafeAreaInsets();
 
   // Never animated with the native driver, because the drag sets it from JS.
   const translateY = useRef(new Animated.Value(offscreen())).current;
@@ -206,33 +205,43 @@ export default function DragSheet({ visible, onClose, header, children, testID }
       visible={mounted}
       transparent
       animationType="none"
+      presentationStyle="overFullScreen"
+      statusBarTranslucent
+      navigationBarTranslucent
       onShow={runEntrance}
       onRequestClose={onClose}
+      testID={testID ? `${testID}-modal` : undefined}
     >
       <View style={styles.fill}>
         <Animated.View
           pointerEvents="none"
           style={[styles.backdrop, { opacity: backdropOpacity }]}
+          testID={testID ? `${testID}-backdrop` : undefined}
         />
         <Animated.View
-          style={[styles.screen, { transform: [{ translateY }] }]}
+          style={[
+            styles.screen,
+            {
+              top: insets.top,
+              paddingBottom: insets.bottom,
+              transform: [{ translateY }],
+            },
+          ]}
           testID={testID}
         >
-          <SafeAreaView style={styles.safe}>
-            <View style={styles.chrome}>
-              <View
-                accessibilityRole="adjustable"
-                accessibilityLabel="Drag down to close"
-                style={styles.grabStrip}
-                testID={testID ? `${testID}-grabber` : undefined}
-                {...responderRef.current.panHandlers}
-              >
-                <View style={styles.grabber} />
-              </View>
-              {header}
+          <View style={styles.chrome}>
+            <View
+              accessibilityRole="adjustable"
+              accessibilityLabel="Drag down to close"
+              style={styles.grabStrip}
+              testID={testID ? `${testID}-grabber` : undefined}
+              {...responderRef.current.panHandlers}
+            >
+              <View style={styles.grabber} />
             </View>
-            {children}
-          </SafeAreaView>
+            {header}
+          </View>
+          {children}
         </Animated.View>
       </View>
     </Modal>
@@ -248,12 +257,11 @@ const createStyles = (colors: ThemeColors) => StyleSheet.create({
     backgroundColor: colors.overlay,
   },
   screen: {
-    flex: 1,
+    position: 'absolute',
+    right: 0,
+    bottom: 0,
+    left: 0,
     backgroundColor: colors.background,
-    paddingTop: Platform.OS === 'android' ? StatusBar.currentHeight : 0,
-  },
-  safe: {
-    flex: 1,
   },
   chrome: {
     backgroundColor: colors.surface,
